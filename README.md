@@ -5,7 +5,9 @@ requirments:
   -
   - python 3.6 or above
   - PIL (to install type `pip install pillow` on terminal or cmd)
-  - pyqt4 (download pyqt4 for your version from [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyqt4))
+  - pyqt4 (download pyqt4 for windows for your version of python from [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyqt4))
+  
+    (to download on ubuntu type `apt-cache search pyqt` hit enter and then type `sudo apt-get install python-qt4` on terminal)
   - every other packege is built into python
   - to know more about modules used and why read [modeuls_used.md](https://github.com/planetred-cc/copro/blob/master/modules_used.md#components)
   
