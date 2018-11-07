@@ -4,10 +4,15 @@ this is a small model of a social networking app like instagram.
 requirments:
   -
   - python 3.6 or above
-  - PIL
-  - pyqt4 download pyqt4 for your version from [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyqt4)
+  - PIL (to install type `pip install pillow` on termanil or cmd)
+  - pyqt4 (download pyqt4 for your version from [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyqt4))
   - every other packege is built into python
   
+how does it works:
+  -
+  the interface that you are using acts as a client which sends request or data to the server using sockets. The server has       gives client the data or stored the data from/in the database and/or the file system which it has. you can see the file 
+  system in work yourself by looking in the serve folder.
+
 how to use:
   -
   - download server.zip and client.zip and unzip them
