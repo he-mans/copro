@@ -5,7 +5,7 @@ requirments:
   -
   - python 3.6 or above
   - PIL
-  - pyqt4
+  - pyqt4 download pyqt4 for your version from [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyqt4)
   - every other packege is built into python
   
 how to use:
