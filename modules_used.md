@@ -33,4 +33,4 @@ since user is going to post images an image handeling module in needed. PIL or p
 
 PyQT4:
 -
-keeping in mind that no user wants to work in ternimal a user interface or a gui is a must in a project like this. PyQT is not certainly the most popular module and also not the most easy to learn or get into but in by far the most updated one according to the current standards compared to Tkinter or any other. thus to provide a solid user interface pyqt4 in implementd. also qtcreated which is gui application to create gui using pyqt makes it much easier to create complex and more interwoven gui compared to others
+keeping in mind that no user wants to work in ternimal a user interface or a gui is a must in a project like this. PyQT is not certainly the most popular module and also not the most easy to learn or get into but in by far the most updated one according to the current standards compared to Tkinter or any other. thus to provide a solid user interface pyqt4 in implementd. also qt creater which is gui application to create gui using pyqt makes it much easier to create complex and more interwoven gui compared to others
