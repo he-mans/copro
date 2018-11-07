@@ -21,7 +21,7 @@ sqlite:
   
 file system:
 -
-  since not all data can be stored into databases or not recommended like images, storing user posts and profile pic needs different solution. That's where file system comes in handy. every user has a folder of his/her name in the server, which has all the post made by the user and has different folders like 'feed' containing all the images in her current existing feed posted by him/her or friends, 'profile pic' which contains profile picture of the user .
+  since not all data can be stored into databases or not recommended like images, storing user posts and profile pic needs different solution. That's where file system comes in handy. every user has a folder of his/her name in the server, which has all the post made by the user and has different folders like 'feed' containing all the feed images by him/her or friends, 'profile pic' which contains profile picture of the user .
   
 datetime module:
 -
