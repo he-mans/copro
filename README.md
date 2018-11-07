@@ -30,4 +30,4 @@ note:
   - go to client folder and open client.py file 
   - change line (line no. 9) ` ip = '127.0.0.1' ` to the ip of the device that your server folder is on (IP must a string).
   - to find ip on a linux device open terminal and type `ifconfig`  
-  - to find ip on a linux device open terminal and type `ifconfig /all` (use ipv4 address) 
+  - to find ip on a windows device open terminal and type `ifconfig /all` (use ipv4 address) 
