@@ -4,7 +4,7 @@
 requirments:
   -
   - python 3.6 or above
-  - PIL (to install type `pip install pillow` on termanil or cmd)
+  - PIL (to install type `pip install pillow` on terminal or cmd)
   - pyqt4 (download pyqt4 for your version from [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyqt4))
   - every other packege is built into python
   
