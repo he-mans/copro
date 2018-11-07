@@ -27,6 +27,6 @@ note:
   run independently on different computer like an actual social networking app then
   - save server folder on a different device
   - go to client folder and open client.py file 
-  - change line (line no. 9) ` ip = '127.0.0.1' ` to the ip of the device that your server folder is on.
+  - change line (line no. 9) ` ip = '127.0.0.1' ` to the ip of the device that your server folder is on (IP must a string).
   - to find ip on a linux device open terminal and type `ifconfig`  
   - to find ip on a linux device open terminal and type `ifconfig /all` (use ipv4 address) 
