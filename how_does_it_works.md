@@ -16,7 +16,7 @@ while seraching the the database is returns all the user whose either first name
 
 accepting or rejecting request:
 - 
-request list is stored in database in form of a string. if of different users are seperated by a space which can be easily converted into a list and then parese into int. when viewing frined request this method is used to retreive the id of the requesters and if request is accepted the id is removed form the list, added to friend list which is also stored in the same way and then the updated list converted into a string and is stored in database and you are removed from his sent list.
+request list is stored in database in form of a string. id of different users are seperated by a space which can be easily converted into a list and then parese into int. when viewing frined request this method is used to retreive the id of the requesters and if request is accepted the id is removed form the list, added to friend list which is also stored in the same way and then the updated list converted into a string and is stored in database and you are removed from his sent list.
 
 for reject it is same process but he/she is not added into your friend list.
 
