@@ -10,7 +10,7 @@ requirments:
   
 how does it works:
   -
-  the interface that you are using acts as a client which sends request or data to the server using sockets. The server has       gives client the data or stored the data from/in the database and/or the file system which it has. you can see the file 
+  the interface that you are using acts as a client which sends request or data to the server using sockets. The server           gives client the data or store the data from/in the database and/or the implimented file system. you can see the file 
   system in work yourself by looking in the serve folder.
 
 how to use:
@@ -24,7 +24,7 @@ how to use:
   
 note:
   -
-  currently the app in configured to run if server and client are on the same computer if you want client to
+  currently the app in configured to run if server and client are on the same computer. if you want client to
   run independently on different computer like an actual social networking app then
   - save server folder on a different device
   - go to client folder and open client.py file 
