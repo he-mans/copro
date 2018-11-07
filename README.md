@@ -17,7 +17,8 @@ how to use:
   -
   - download server.zip and client.zip and unzip them
   - save both server and client folder on your pc
-  - open the server folder and run all the server .py files and leave them running
+  - open the server folder and run functions.py to create database file and user count file
+  - run all the server .py files in server folder and leave them running
   - open the client folder and run gui.py file
   - (in linux) to close a server terminal use ctrl+c to first force stop the current going operation in order to free port    currently used
   
