@@ -31,3 +31,5 @@ note:
   - change line (line no. 9) ` ip = '127.0.0.1' ` to the ip of the device that your server folder is on (IP must be a string).
   - to find ip on a linux device open terminal and type `ifconfig`  
   - to find ip on a windows device open cmd and type `ifconfig /all` (use ipv4 address) 
+
+**to know how it works or which modules are used and why read respective .md files**
