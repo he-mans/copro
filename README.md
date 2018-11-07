@@ -10,6 +10,7 @@ requirments:
   
 how to use:
   -
+  - download server.zip and client.zip and unzip them
   - save both server and client folder on your pc
   - open the server folder and run all the server .py files and leave them running
   - open the client folder and run gui.py file
