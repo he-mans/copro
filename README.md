@@ -1,5 +1,5 @@
 # copro
-this is a small model of a social networking app like instagram.
+  a small model of a social networking app.
 
 requirments:
   -
@@ -20,7 +20,7 @@ how to use:
   - open the server folder and run functions.py to create database file and user count file
   - run all the server .py files in server folder and leave them running
   - open the client folder and run gui.py file
-  - (in linux) to close a server terminal use ctrl+c to first force stop the current going operation in order to free port    currently used
+  - (in linux) to close a server terminal use ctrl+c to first force stop the ongoing operation in order to free port    currently being used
   
 note:
   -
