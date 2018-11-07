@@ -10,7 +10,7 @@ requirments:
   
 how does it works:
   -
-  the interface that you are using acts as a client which sends request or data to the server using sockets. The server           gives client the data or store the data from/in the database and/or the implimented file system. you can see the file 
+  the interface that you are using acts as a client which sends request or data to the server using sockets. The server           gives client the data or store the data in the database and/or the implimented file system. you can see the file 
   system in work yourself by looking in the serve folder.
 
 how to use:
