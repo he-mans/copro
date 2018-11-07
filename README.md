@@ -7,11 +7,12 @@ requirments:
   - PIL (to install type `pip install pillow` on terminal or cmd)
   - pyqt4 (download pyqt4 for your version from [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyqt4))
   - every other packege is built into python
+  - to know more about modules used and why read [modeuls_used.md](https://github.com/planetred-cc/copro/blob/master/modules_used.md#components)
   
 how does it works:
   -
   the interface that you are using acts as a client which sends request or data to the server using sockets. The server           gives client the data or store the data in the database and/or the implimented file system. you can see the file 
-  system in work yourself by looking in the serve folder.
+  system in work yourself by looking in the serve folder. to know more read [how_does_it_works.md](https://github.com/planetred-cc/copro/blob/master/how_does_it_works.md#creating-account)
 
 how to use:
   -
