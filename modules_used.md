@@ -29,7 +29,7 @@ in order to keep all the posts in chronological order datetime module is being u
 
 PIL:
 -
-since user is going to post images a image processing module in needed. PIL or pillow is the most widely used and image processing module in python thus used here.
+since user is going to post images an image handeling module in needed. PIL or pillow is the most widely used and image processing module in python thus used here.
 
 PyQT4:
 -
