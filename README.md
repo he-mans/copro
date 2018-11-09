@@ -18,8 +18,7 @@ how does it works:
 
 how to use:
   -
-  - download server.zip and client.zip and unzip them
-  - save both server and client folder on your pc
+  - download server and client folders and save them on your pc
   - open the server folder and run functions.py to create database file and user count file
   - run all the server .py files in server folder and leave them running
   - open the client folder and run gui.py file
