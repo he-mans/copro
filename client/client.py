@@ -71,29 +71,32 @@ def login(email,password):
             os.chdir("..")
             print('folders created')
         
-            print("sending request to send profile pic and thumbnail")
-            s.sendall("send".encode())
+        
+        print("sending request to send profile pic and thumbnail")
+        s.sendall("send".encode())
 
-            print("receiving images file")
-            with open("images.pickle",'wb') as f:
+        print("receiving images file")
+        with open("images.pickle",'wb') as f:
+            data = s.recv(4096000)
+            while data:
+                f.write(data)
                 data = s.recv(4096000)
-                while data:
-                    f.write(data)
-                    data = s.recv(4096000)
             
-            with open("images.pickle",'rb') as f:
-                profile,thumbnail = pickle.load(f)
+        with open("images.pickle",'rb') as f:
+            profile,thumbnail = pickle.load(f)
             
-            print("saving images")
-            profile.save(f'account_user{email}/profile_pic_user{email}/propic.jpg')
-            thumbnail.save(f'account_user{email}/thumbnail_user{email}/thumbnail.jpg')
-            print('image saved')
+        print("saving images")
+        profile.save(f'account_user{email}/profile_pic_user{email}/propic.jpg')
+        thumbnail.save(f'account_user{email}/thumbnail_user{email}/thumbnail.jpg')
+        print('image saved')
             
-        else:
-            s.sendall("don't send".encode())
+    else:
+        s.sendall("don't send".encode())
     
     try:
         os.remove('images.pickle')
+    except Exception as e:
+    	print(e)
     finally:
         s.close()
         print("socket closed")
@@ -193,6 +196,8 @@ def fetch_feed(email):
     try:
     	shutil.rmtree(f'account_user{email}/feed_user{email}')
     	shutil.rmtree(f'account_user{email}/thumbnail_people_feed')
+    except Exception as e:
+    	print(e)
     finally:
     	os.makedirs(f'account_user{email}/feed_user{email}')
     	os.makedirs(f'account_user{email}/thumbnail_people_feed')
@@ -350,6 +355,8 @@ def search(searched_person,email):
     
     try:
     	shutil.rmtree(f'account_user{email}/thumbnail_people_search')
+    except Exception as e:
+    	print(e)
     finally:
     	os.makedirs(f'account_user{email}/thumbnail_people_search')
 
@@ -441,6 +448,8 @@ def fetch_req(user_email):
     
     try:
     	shutil.rmtree(f'account_user{user_email}/thumbnail_people_friend_request')
+    except Exception as e:
+    	print(e)
     finally:
     	os.makedirs(f'account_user{user_email}/thumbnail_people_friend_request')
 
@@ -553,6 +562,8 @@ def fetch_scout_view(user_email,person_email,person_id):
 
 	try:
 		shutil.rmtree(f'account_user{user_email}/scout')
+	except Exception as e:
+		print(e)
 	finally:
 		os.makedirs(f'account_user{user_email}/scout')
 
