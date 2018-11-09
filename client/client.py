@@ -147,25 +147,26 @@ def change_propic(propic,email):
     port = 3000
     global ip
     
-    print("creating socket")
-    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    print('socket created')
-
-    print("connection socket")
-    s.connect((ip,port))
-    print("connected")
-
-    print('sending flag')
-    s.sendall('propic'.encode())
-    print(s.recv(4096).decode('utf-8'))
-
     try:
         propic_var = propic
         propic = PilImage.open(propic)
         if ".jpg" not in propic_var and ".jpeg" not in propic_var:
             return 0
 
-        details = [propic,email]
+        print("creating socket")
+		s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+		print('socket created')
+
+		print("connection socket")
+		s.connect((ip,port))
+		print("connected")
+
+		print('sending flag')
+		s.sendall('propic'.encode())
+		print(s.recv(4096).decode('utf-8'))
+
+
+		details = [propic,email]
         print('sending details')
         with open("image.pickle",'wb') as f:
             pickle.dump(details,f)
