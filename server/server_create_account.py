@@ -22,14 +22,14 @@ class account:
 
 def create_account(first,last,email,password):
     
-    conn = sqlite3.connect("copro.db")
-    c  = conn.cursor()
+    conn_create = sqlite3.connect("copro.db")
+    cursor_create  = conn_create.cursor()
 
     first,last,email,password = first.strip(),last.strip(),email.strip(),password.strip()
-    with conn:  
-        c.execute("""SELECT * FROM accounts
+    with conn_create:  
+        cursor_create.execute("""SELECT * FROM accounts
                      WHERE email = (:email)""",{"email":email})
-        if c.fetchone() is not None:
+        if cursor_create.fetchone() is not None:
             return 0
         else:
             member = account(first,last,email,password)
@@ -51,7 +51,7 @@ def create_account(first,last,email,password):
             image = PilImage.open("default_icons/default_feed_thumbnail.jpg")
             image.save(f"account_user{email}/thumbnail_user{email}/feed_thumbnail.jpg")
             
-            c.execute("""INSERT INTO accounts
+            cursor_create.execute("""INSERT INTO accounts
                         VALUES(:id,:first, :last, :email,:password,:propic,
                                 :thumbnail,:feed_thumbnail,:friend_req,:friend_list,:sent)""",{
                          "id":current_users,
@@ -70,33 +70,32 @@ def create_account(first,last,email,password):
             return 1
 
 
-port = 2000
-s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-print("server socket created")
-
-s.bind(('',port))
-print("server binded to port 1000")
-
-s.listen(4)
-print("server started listening")
-
-while True:
-    c,add = s.accept()
-    print("client accepted")
+def main():
     
-    print("receving account details")
-    account_details = pickle.loads(c.recv(4096))
-    print("details received")
+    port = 2000
+    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    print("server socket created")
 
-    print("creating account")
-    return_status = create_account(account_details[0],account_details[1],account_details[2],account_details[3])
+    s.bind(('',port))
+    print("server binded to port 1000")
 
-    print("sending return status of server")
-    c.sendall(pickle.dumps(return_status))
-    print("sent")
-    c.close()
+    s.listen(4)
+    print("server started listening")
 
-s.close()
+    while True:
+        c,add = s.accept()
+        print("client accepted")
+        
+        print("receving account details")
+        account_details = pickle.loads(c.recv(4096))
+        print("details received")
 
+        print("creating account")
+        return_status = create_account(account_details[0],account_details[1],account_details[2],account_details[3])
 
+        print("sending return status of server")
+        c.sendall(pickle.dumps(return_status))
+        print("sent")
+        c.close()
 
+    s.close()

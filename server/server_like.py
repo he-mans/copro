@@ -30,35 +30,36 @@ def remove_like(image,p_id,user_email,email):
     return likes-1    
 
 
-port = 4500
+def main():
+    port = 4500
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print("socket made")
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print("socket made")
 
-print("binding socket")
-s.bind(('',port))
-print('socket binded')
+    print("binding socket")
+    s.bind(('',port))
+    print('socket binded')
 
-s.listen(4)
-print('socket started to listen')
+    s.listen(4)
+    print('socket started to listen')
 
-while True:
-	c,add = s.accept()
-	print('connected to client')
+    while True:
+    	c,add = s.accept()
+    	print('connected to client')
 
-	print("receiving details")
-	details = pickle.loads(c.recv(4096))
-	c.sendall('received by server'.encode())
+    	print("receiving details")
+    	details = pickle.loads(c.recv(4096))
+    	c.sendall('received by server'.encode())
 
-	if details[-1] == "like":
-		like_count = add_like(details[0],details[1],details[2],details[3])
+    	if details[-1] == "like":
+    		like_count = add_like(details[0],details[1],details[2],details[3])
 
-	elif details[-1] == "unlike":
-		like_count = remove_like(details[0],details[1],details[2],details[3])
+    	elif details[-1] == "unlike":
+    		like_count = remove_like(details[0],details[1],details[2],details[3])
 
-	print("sending like count")
-	c.sendall(pickle.dumps(like_count))
+    	print("sending like count")
+    	c.sendall(pickle.dumps(like_count))
 
-	c.close()
+    	c.close()
 
-s.close()
+    s.close()
