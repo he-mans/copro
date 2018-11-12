@@ -96,7 +96,7 @@ def login(email,password):
     try:
         os.remove('images.pickle')
     except Exception as e:
-    	print(e)
+        print(e)
     finally:
         s.close()
         print("socket closed")
@@ -154,19 +154,19 @@ def change_propic(propic,email):
             return 0
 
         print("creating socket")
-		s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-		print('socket created')
+        s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        print('socket created')
 
-		print("connection socket")
-		s.connect((ip,port))
-		print("connected")
+        print("connection socket")
+        s.connect((ip,port))
+        print("connected")
 
-		print('sending flag')
-		s.sendall('propic'.encode())
-		print(s.recv(4096).decode('utf-8'))
+        print('sending flag')
+        s.sendall('propic'.encode())
+        print(s.recv(4096).decode('utf-8'))
 
 
-		details = [propic,email]
+        details = [propic,email]
         print('sending details')
         with open("image.pickle",'wb') as f:
             pickle.dump(details,f)
@@ -195,13 +195,13 @@ def fetch_feed(email):
     global ip
 
     try:
-    	shutil.rmtree(f'account_user{email}/feed_user{email}')
-    	shutil.rmtree(f'account_user{email}/thumbnail_people_feed')
+        shutil.rmtree(f'account_user{email}/feed_user{email}')
+        shutil.rmtree(f'account_user{email}/thumbnail_people_feed')
     except Exception as e:
-    	print(e)
+        print(e)
     finally:
-    	os.makedirs(f'account_user{email}/feed_user{email}')
-    	os.makedirs(f'account_user{email}/thumbnail_people_feed')
+        os.makedirs(f'account_user{email}/feed_user{email}')
+        os.makedirs(f'account_user{email}/thumbnail_people_feed')
 
     print("creating feed socket")
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -355,11 +355,11 @@ def search(searched_person,email):
     global ip
     
     try:
-    	shutil.rmtree(f'account_user{email}/thumbnail_people_search')
+        shutil.rmtree(f'account_user{email}/thumbnail_people_search')
     except Exception as e:
-    	print(e)
+        print(e)
     finally:
-    	os.makedirs(f'account_user{email}/thumbnail_people_search')
+        os.makedirs(f'account_user{email}/thumbnail_people_search')
 
     print("creating socket")
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -448,11 +448,11 @@ def fetch_req(user_email):
     global ip
     
     try:
-    	shutil.rmtree(f'account_user{user_email}/thumbnail_people_friend_request')
+        shutil.rmtree(f'account_user{user_email}/thumbnail_people_friend_request')
     except Exception as e:
-    	print(e)
+        print(e)
     finally:
-    	os.makedirs(f'account_user{user_email}/thumbnail_people_friend_request')
+        os.makedirs(f'account_user{user_email}/thumbnail_people_friend_request')
 
     print('creating socket')
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -540,88 +540,88 @@ def accept_req(requester_id,new_req_list,user_id):
     print('sent')
 
 def fetch_scout_view(user_email,person_email,person_id):
-	global ip
-	port = 6000
+    global ip
+    port = 6000
 
-	print('creating socket')
-	s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-	print('socket created')
+    print('creating socket')
+    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    print('socket created')
 
-	s.connect((ip,port))
-	print('connnected to server')
+    s.connect((ip,port))
+    print('connnected to server')
 
-	print('sending details to server')
-	s.sendall(pickle.dumps([person_email,person_id]))
-	print(s.recv(4096).decode('utf-8'))
+    print('sending details to server')
+    s.sendall(pickle.dumps([person_email,person_id]))
+    print(s.recv(4096).decode('utf-8'))
 
-	print('receiving images names')
-	names = pickle.loads(s.recv(4096))
-	names = [name.split('.jpg')[0] for name in names]
-	images_time = [datetime.datetime.strptime(name.split('_')[0] , '%Y-%m-%d %H:%M:%S.%f') for name in names]
-	s.sendall(b'names received by client')
-	print('received')
+    print('receiving images names')
+    names = pickle.loads(s.recv(4096))
+    names = [name.split('.jpg')[0] for name in names]
+    images_time = [datetime.datetime.strptime(name.split('_')[0] , '%Y-%m-%d %H:%M:%S.%f') for name in names]
+    s.sendall(b'names received by client')
+    print('received')
 
-	try:
-		shutil.rmtree(f'account_user{user_email}/scout')
-	except Exception as e:
-		print(e)
-	finally:
-		os.makedirs(f'account_user{user_email}/scout')
+    try:
+        shutil.rmtree(f'account_user{user_email}/scout')
+    except Exception as e:
+        print(e)
+    finally:
+        os.makedirs(f'account_user{user_email}/scout')
 
-	print('receiving images')
-	with open('images.pickle','wb') as f:
-		while True:
-			data = s.recv(4096)
-			if data.endswith(b'no more data'):
-				data = data.split(b'no more data')[0]
-				f.write(data)
-				break
-			f.write(data)
-	s.sendall(b'images received by client')
-	print('received')
+    print('receiving images')
+    with open('images.pickle','wb') as f:
+        while True:
+            data = s.recv(4096)
+            if data.endswith(b'no more data'):
+                data = data.split(b'no more data')[0]
+                f.write(data)
+                break
+            f.write(data)
+    s.sendall(b'images received by client')
+    print('received')
 
-	with open('images.pickle','rb') as f:
-		images = pickle.load(f)
+    with open('images.pickle','rb') as f:
+        images = pickle.load(f)
 
-	os.remove('images.pickle')
+    os.remove('images.pickle')
 
-	for image,name in zip(images,names):
-		image.save(f'account_user{user_email}/scout/{name}.jpg')
+    for image,name in zip(images,names):
+        image.save(f'account_user{user_email}/scout/{name}.jpg')
 
-	print('recieving likes and people liked')
-	likes,people_liked = pickle.loads(s.recv(4096))
-	s.sendall(b'received by client')
-	print('received')
+    print('recieving likes and people liked')
+    likes,people_liked = pickle.loads(s.recv(4096))
+    s.sendall(b'received by client')
+    print('received')
 
-	print('receiving profile and thumbnail')
-	with open('images.pickle','wb') as f:
-		while True:
-			data = s.recv(4096)
-			if data.endswith(b'no more data'):
-				data = data.split(b'no more data')[0]
-				f.write(data)
-				break
-			f.write(data)
-	s.sendall(b'received by client')
-	print('received')
+    print('receiving profile and thumbnail')
+    with open('images.pickle','wb') as f:
+        while True:
+            data = s.recv(4096)
+            if data.endswith(b'no more data'):
+                data = data.split(b'no more data')[0]
+                f.write(data)
+                break
+            f.write(data)
+    s.sendall(b'received by client')
+    print('received')
 
-	with open('images.pickle','rb') as f:
-		pro_and_thu = pickle.load(f)
+    with open('images.pickle','rb') as f:
+        pro_and_thu = pickle.load(f)
 
-	os.remove('images.pickle')
+    os.remove('images.pickle')
 
-	pro_and_thu[0].save(f'account_user{user_email}/scout/propic.jpg')
-	pro_and_thu[1].save(f'account_user{user_email}/scout/thumbnail.jpg')
+    pro_and_thu[0].save(f'account_user{user_email}/scout/propic.jpg')
+    pro_and_thu[1].save(f'account_user{user_email}/scout/thumbnail.jpg')
 
-	images = os.listdir(f'account_user{user_email}/scout')
-	images.remove('propic.jpg')
-	images.remove('thumbnail.jpg')
-	images = sorted(images,key = lambda x:datetime.datetime.strptime(x.split('_')[0],'%Y-%m-%d %H:%M:%S.%f'))
-	images = [f'account_user{user_email}/scout/{image}' for image in images]
-	propic = f'account_user{user_email}/scout/propic.jpg'
-	thumbnail = f'account_user{user_email}/scout/thumbnail.jpg'
-	
-	return (images,likes,people_liked,propic,thumbnail,images_time)
+    images = os.listdir(f'account_user{user_email}/scout')
+    images.remove('propic.jpg')
+    images.remove('thumbnail.jpg')
+    images = sorted(images,key = lambda x:datetime.datetime.strptime(x.split('_')[0],'%Y-%m-%d %H:%M:%S.%f'))
+    images = [f'account_user{user_email}/scout/{image}' for image in images]
+    propic = f'account_user{user_email}/scout/propic.jpg'
+    thumbnail = f'account_user{user_email}/scout/thumbnail.jpg'
+    
+    return (images,likes,people_liked,propic,thumbnail,images_time)
 
 def logout(email):
     shutil.rmtree(f'account_user{email}')
