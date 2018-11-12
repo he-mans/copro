@@ -22,7 +22,7 @@ how to use:
   - open the server folder and run functions.py to create database file and user count file
   - run main.py in server folder and leave it running
   - open the client folder and run gui.py file
-  - (in linux) to close a server terminal use ctrl+c to first force stop the ongoing operation in order to free port    currently being used
+  - (in linux) to close a server terminal use ctrl+c(twice if needed) to first force stop the ongoing operation in order to free port    currently being used
   
 note:
   -
