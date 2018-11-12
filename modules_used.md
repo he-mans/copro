@@ -48,4 +48,4 @@ in order to like an image or to send friend request to a person or any other suc
 
 threading:
 -
-there are total 9 server files performing different tasks. running them seperately on differently on different command lines may prove hard to managa and moniter. main.py takes care of this as it automatically runs all the server files and in order for these server files to run independently threading is used. this may not be a good idea given the situation but it is done for ease of use for demo purposes.
+there are total 9 server files performing different tasks. running them seperately on differently on different command lines may prove hard to managa and moniter. file 'main.py' in server takes care of this as it automatically runs all the server files and in order for these server files to run independently, threading is used. this may not be a good idea given the situation but it is done for ease of use for demo purposes.
