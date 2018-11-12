@@ -7,6 +7,8 @@ components:
   - datetime module for chronological order and keeping track of time
   - pyqt4 for creating gui
   - pickle
+  - partial form functools
+  - threading
 
 sockets:
 -
@@ -39,3 +41,11 @@ keeping in mind that no user wants to work in ternimal a user interface or a gui
 pickel:
 -
 for converting image objects or string or lists into byte strings to send then through sockets.
+
+partial:
+-
+in order to like an image or to send friend request to a person or any other such task the respective button should be mapped to their respective function with image or person sepecific information sent as arguments. mapping button with function usual/primitive way only maps the last button to the function and rest are ignored. to solve this problen partial method from functools module is used. tuple are used to send the required information as partial accepts only one argument to a function
+
+threading:
+-
+there are total 9 server files performing different tasks. running them seperately on differently on different command lines may prove hard to managa and moniter. main.py takes care of this as it automatically runs all the server files and in order for these server files to run independently threading is used. this may not be a good idea given the situation but it is done for ease of use for demo purposes.
