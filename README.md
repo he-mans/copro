@@ -35,3 +35,4 @@ note:
   - to find ip on a windows device open cmd and type `ipconfig /all` (use ipv4 address) 
 
 **to know how it works or which modules are used and why read respective .md files**
+**if programm gives ERROR `TabError: inconsistent use of tabs and spaces in indentation` change indentation to spaces in both client.py and gui.py**
