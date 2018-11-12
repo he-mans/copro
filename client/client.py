@@ -153,6 +153,8 @@ def change_propic(propic,email):
         if ".jpg" not in propic_var and ".jpeg" not in propic_var:
             return 0
 
+    except:
+        return 0
         print("creating socket")
         s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         print('socket created')
@@ -185,8 +187,6 @@ def change_propic(propic,email):
         propic.save(f"account_user{email}/thumbnail_user{email}/thumbnail.jpg")
         return 1
         
-    except:
-        return None
 
 
 
@@ -294,7 +294,7 @@ def upload_feed(image,email):
         if ".jpg" not in image_var and ".jpeg" not in image_var:
             return 0
     except:
-        return None
+        return 0
 
     port = 4000
     global ip
