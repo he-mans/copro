@@ -20,7 +20,7 @@ how to use:
   -
   - download server and client folders and save them on your pc
   - open the server folder and run functions.py to create database file and user count file
-  - run all the server .py files in server folder and leave them running
+  - run run main.py in server folder and leave it running
   - open the client folder and run gui.py file
   - (in linux) to close a server terminal use ctrl+c to first force stop the ongoing operation in order to free port    currently being used
   
