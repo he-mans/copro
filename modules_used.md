@@ -40,7 +40,7 @@ keeping in mind that no user wants to work in ternimal a user interface or a gui
 
 pickel:
 -
-for converting image objects or string or lists into byte strings to send then through sockets.
+for converting image objects or string or lists into byte strings to send them through sockets.
 
 partial:
 -
