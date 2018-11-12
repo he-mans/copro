@@ -6,9 +6,9 @@ components:
   - os module for managing file system
   - datetime module for chronological order and keeping track of time
   - pyqt4 for creating gui
-  - pickle
-  - partial form functools
-  - threading
+  - pickle for converting object to byte strings
+  - partial form functools for mapping buttons to functions
+  - threading for threading
 
 sockets:
 -
