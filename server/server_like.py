@@ -63,3 +63,6 @@ def main():
     	c.close()
 
     s.close()
+
+if __name__ == '__main__':
+    main()

@@ -99,3 +99,6 @@ def main():
         print(c.recv(4096))
 
         os.remove('pro_and_thu_scout.pickle') 
+
+if __name__ == '__main__':
+    main()

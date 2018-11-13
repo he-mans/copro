@@ -79,3 +79,6 @@ def main():
                 image.save(f"account_user{friend}/feed_user{friend}/{upload_time}_image_account-{user_id}.jpg")
 
     s.close()
+
+if __name__ == '__main__':
+    main()
