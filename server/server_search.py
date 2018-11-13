@@ -41,7 +41,7 @@ def search(detail,user_email):
         sent = sent.split(" ")
         return (search_result,friend_list,sent)
 
-def send_req(sender_email,requester_id):
+def send_req(sender_email,receiver_id):
     conn_search = sqlite3.connect("copro.db")
     cursor_search = conn_search.cursor()
 
