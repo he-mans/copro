@@ -36,4 +36,4 @@ note:
 
  **to know how it works or which modules are used and why read respective .md files**
  
- **if programm gives ERROR `TabError: inconsistent use of tabs and spaces in indentation` change indentation to spaces in both client.py and gui.py**
+ **if programm gives ERROR `TabError: inconsistent use of tabs and spaces in indentation` change indentation to spaces in for that file**
