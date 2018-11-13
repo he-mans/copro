@@ -269,7 +269,7 @@ def fetch_feed(email):
         print("image saved")
         thumbnail_counter+=1
     
-    images_time = [datetime.datetime.strptime(image.split('_')[0],'%Y-%m-%d %H:%M:%S.%f') for image in images]
+    images_time = [datetime.datetime.strptime(image.replace('$',':').split('_')[0],'%Y-%m-%d %H:%M:%S.%f') for image in images]
     images = [f"account_user{email}/feed_user{email}/{image}" for image in images]
     thumbnails = [f"account_user{email}/thumbnail_people_feed/{thumbnail}" for thumbnail in os.listdir()]
     thumbnails = sorted(thumbnails)
@@ -556,7 +556,7 @@ def fetch_scout_view(user_email,person_email,person_id):
     print('receiving images names')
     names = pickle.loads(s.recv(4096))
     names = [name.split('.jpg')[0] for name in names]
-    images_time = [datetime.datetime.strptime(name.split('_')[0] , '%Y-%m-%d %H:%M:%S.%f') for name in names]
+    images_time = [datetime.datetime.strptime(name.replace('$',':').split('_')[0] , '%Y-%m-%d %H:%M:%S.%f') for name in names]
     s.sendall(b'names received by client')
     print('received')
 
@@ -615,7 +615,7 @@ def fetch_scout_view(user_email,person_email,person_id):
     images = os.listdir(f'account_user{user_email}/scout')
     images.remove('propic.jpg')
     images.remove('thumbnail.jpg')
-    images = sorted(images,key = lambda x:datetime.datetime.strptime(x.split('_')[0],'%Y-%m-%d %H:%M:%S.%f'))
+    images = sorted(images,key = lambda x:datetime.datetime.strptime(x.replace('$',':').split('_')[0],'%Y-%m-%d %H:%M:%S.%f'))
     images = [f'account_user{user_email}/scout/{image}' for image in images]
     propic = f'account_user{user_email}/scout/propic.jpg'
     thumbnail = f'account_user{user_email}/scout/thumbnail.jpg'
