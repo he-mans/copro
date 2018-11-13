@@ -36,7 +36,7 @@ def main():
         os.chdir(f"account_user{person_email}")
         posts = os.listdir()
         images_name = [image for image in posts if image.endswith(".txt") is False and os.path.isdir(image) is False]
-        images_name = sorted(images_name,key=lambda x: datetime.datetime.strptime(x.split("_")[0],'%Y-%m-%d %H:%M:%S.%f'))
+        images_name = sorted(images_name,key=lambda x: datetime.datetime.strptime(x.replace('$',':').split("_")[0],'%Y-%m-%d %H:%M:%S.%f'))
         
         print('sending images names')
         c.sendall(pickle.dumps(images_name))

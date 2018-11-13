@@ -61,6 +61,7 @@ def main():
             friend_list = friend_list.split(" ")
             image.thumbnail((480,480))
             upload_time = str(datetime.datetime.now())
+            upload_time=upload_time.replace(":","$")
             image.save(f"account_user{user_email}/{upload_time}_image_account-{user_id}.jpg")
             image.save(f"account_user{user_email}/feed_user{user_email}/{upload_time}_image_account-{user_id}.jpg")
             f=open(f"account_user{user_email}/{upload_time}_image_account-{user_id}.txt","w")

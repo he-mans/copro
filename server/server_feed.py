@@ -10,7 +10,7 @@ def get_image_names(email):
     os.chdir(f"account_user{email}/feed_user{email}")
     ls = os.listdir()
     ls = [image for image in ls if image.endswith(".txt") is False]
-    ls = sorted(ls,key = lambda x: datetime.datetime.strptime(x.split('_')[0],'%Y-%m-%d %H:%M:%S.%f'))    
+    ls = sorted(ls,key = lambda x: datetime.datetime.strptime(x.replace('$',':').split('_')[0],'%Y-%m-%d %H:%M:%S.%f'))    
     os.chdir('..')
     os.chdir('..')
     return ls
