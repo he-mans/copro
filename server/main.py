@@ -12,7 +12,6 @@ import server_scout
 
 def start_server_feed():
     try:
-        1/0
         server_feed.main()
     except Exception as e:
         print('server_feed raised exception :',end = ' ')
