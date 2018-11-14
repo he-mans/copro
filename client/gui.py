@@ -859,7 +859,7 @@ class Ui_MainWindow(object):
         self.btn_sign_up_su.clicked.connect(lambda:self.create_account(first = 0))
         self.btn_login.clicked.connect(lambda:self.login(first=2,second=0))
         self.btn_feed.clicked.connect(lambda:self.feed_page())
-        self.btn_find_people.clicked.connect(lambda:self.search_page())
+        self.btn_find_people.clicked.connect(lambda:self.change_to_search_page())
         self.btn_frnd_req.clicked.connect(lambda:self.fetch_req())
         self.btn_account.clicked.connect(lambda:self.change_page(second = 3))
         self.btn_first_as.clicked.connect(lambda:self.account_settings(flag = 0))
@@ -883,6 +883,7 @@ class Ui_MainWindow(object):
         self.feed = []
         self.le_search.clear()
         self.clear(self.verticalLayout_22)
+        self.clear(self.verticalLayout_11)
         self.change_page(first = 0 , second = 0)
         
 
@@ -893,8 +894,8 @@ class Ui_MainWindow(object):
             self.stackedWidget_2.setCurrentIndex(second)
     
     def cancle(self):
-    	self.le_new_name.clear()
-    	self.change_page(second = 3)
+        self.le_new_name.clear()
+        self.change_page(second = 3)
     
     def create_account(self,first = None):
         status = client.create(self.le_first_su.text(),self.le_last_su.text(),
@@ -973,30 +974,49 @@ class Ui_MainWindow(object):
                 item.widget().deleteLater()
             elif item.layout() is not None:
                 self.clear(item.layout())
-        if flag=="search" and self.search_result==[]:
-            horizontal_layout = QtGui.QHBoxLayout()
-            spacerItem = QtGui.QSpacerItem(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
-            lable = QtGui.QLabel(self.scrollAreaWidgetContents)
-            sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
-            sizePolicy.setHorizontalStretch(0)
-            sizePolicy.setVerticalStretch(0)
-            sizePolicy.setHeightForWidth(lable.sizePolicy().hasHeightForWidth())
-            lable.setSizePolicy(sizePolicy)
-            lable.setText(_fromUtf8(""))
-            lable.setPixmap(QtGui.QPixmap("default_icons/search_flag.png"))
-            horizontal_layout.addItem(spacerItem)
-            horizontal_layout.addWidget(lable)
-            self.verticalLayout_11.addLayout(horizontal_layout)
+        if flag=='search':
+            self.change_to_search_page()
+
+    def change_to_search_page(self):
+        self.change_page(second=1)
+        horizontal_layout = QtGui.QHBoxLayout()
+        spacerItem = QtGui.QSpacerItem(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+        lable = QtGui.QLabel(self.scrollAreaWidgetContents)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(lable.sizePolicy().hasHeightForWidth())
+        lable.setSizePolicy(sizePolicy)
+        lable.setText(_fromUtf8(""))
+        lable.setPixmap(QtGui.QPixmap("default_icons/search_flag.png"))
+        horizontal_layout.addItem(spacerItem)
+        horizontal_layout.addWidget(lable)
+        self.verticalLayout_11.addLayout(horizontal_layout)
+
 
     def search(self):
         self.search_result,self.friend_list,self.sent = client.search(self.le_search.text(),self.user_detail["email"])
         self.search_page()
     
     def search_page(self):
-        self.clear(self.verticalLayout_11,flag="search")
-        self.change_page(second = 1)
+        self.clear(self.verticalLayout_11)
         self.page_elements = {}
 
+        if self.search_result == ():
+            no_search_flag = QtGui.QLabel(self.scrollAreaWidgetContents)
+            font = QtGui.QFont()
+            font.setFamily(_fromUtf8("Ubuntu"))
+            font.setPointSize(9)
+            no_search_flag.setFont(font)
+            no_search_flag.setText('no result found')
+            horizontal_layout = QtGui.QHBoxLayout()
+            spacer = QtGui.QSpacerItem(15,15,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+            spacer2 = QtGui.QSpacerItem(15,15,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+            horizontal_layout.addItem(spacer)
+            horizontal_layout.addWidget(no_search_flag)
+            horizontal_layout.addItem(spacer2)
+            self.verticalLayout_11.insertLayout(0,horizontal_layout)
+        
         for i,result in enumerate(self.search_result):
             self.page_elements["li_fp"+str(i)] = QtGui.QLabel(self.scrollAreaWidgetContents)
             self.page_elements["ln_fp"+str(i)] = QtGui.QPushButton(self.scrollAreaWidgetContents)
@@ -1078,7 +1098,7 @@ class Ui_MainWindow(object):
         
         self.spacerItem_fp = QtGui.QSpacerItem(15, 10, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         self.verticalLayout_11.addItem(self.spacerItem_fp)
-        self.search_result = []
+        #self.search_result = []
 
     def send_frnd_req(self,button,result):
         button.setText("Friend Request sent")
