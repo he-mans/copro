@@ -1,4 +1,5 @@
 import threading
+import traceback
 import server_login
 import server_create_account
 import server_feed
@@ -12,10 +13,13 @@ import server_scout
 
 def start_server_feed():
     try:
+        1/0
         server_feed.main()
     except Exception as e:
         print('server_feed raised exception :',end = ' ')
         print(e)
+        print('traceback for above feed error')
+        traceback.print_exc()
 
 def start_server_login():
     try:
@@ -23,6 +27,8 @@ def start_server_login():
     except Exception as e:
         print('server_login raised exception :',end = ' ')
         print(e)
+        print('traceback for above login error')
+        traceback.print_exc()
 
 def start_server_create_account():
     try:    
@@ -30,6 +36,8 @@ def start_server_create_account():
     except Exception as e:
         print('server_create_account raised exception :',end = ' ')
         print(e)
+        print('traceback for above create_account error')
+        traceback.print_exc()
 
 def start_server_upload_feed():
     try:
@@ -37,6 +45,8 @@ def start_server_upload_feed():
     except Exception as e:
         print('server_upload_feed raised exception :',end = ' ')
         print(e)
+        print('traceback for above upload_feed error')
+        traceback.print_exc()
 
 def start_server_search():
     try:
@@ -44,6 +54,8 @@ def start_server_search():
     except Exception as e:
         print('server_search raised exception :',end = ' ')
         print(e)
+        print('traceback for above search error')
+        traceback.print_exc()
 
 def start_server_friend():
     try:
@@ -51,6 +63,8 @@ def start_server_friend():
     except Exception as e:
         print('server_friend raised exception :',end = ' ')
         print(e)
+        print('traceback for above server_friend error')
+        traceback.print_exc()
 
 def start_server_change_settings():
     try:
@@ -58,6 +72,8 @@ def start_server_change_settings():
     except Exception as e:
         print('server_change_settings raised exception :',end = ' ')
         print(e)
+        print('traceback for above change_settings error')
+        traceback.print_exc()
 
 def start_server_like():
     try:
@@ -65,6 +81,8 @@ def start_server_like():
     except Exception as e:
         print('server_like raised exception :',end = ' ')
         print(e)
+        print('traceback for above like error')
+        traceback.print_exc()
 
 def start_server_scout():
     try:
@@ -72,6 +90,8 @@ def start_server_scout():
     except Exception as e:
         print('server_scout raised exception :',end = ' ')
         print(e)
+        print('traceback for above scout error')
+        traceback.print_exc()
 
 if __name__ == '__main__':
     threads = []
