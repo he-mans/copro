@@ -47,8 +47,6 @@ def main():
         with open('image_upload_feed.pickle','rb') as f:
             image = pickle.load(f)
 
-        os.remove('image_upload_feed.pickle')
-
         conn_upload_feed = sqlite3.connect('copro.db')
         cursor_upload = conn_upload_feed.cursor()
 
@@ -78,7 +76,7 @@ def main():
                             })
                 friend = cursor_upload.fetchone()[0]
                 image.save(f"account_user{friend}/feed_user{friend}/{upload_time}_image_account-{user_id}.jpg")
-
+        os.remove('image_upload_feed.pickle')
     s.close()
 
 if __name__ == '__main__':
