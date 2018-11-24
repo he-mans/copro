@@ -105,11 +105,11 @@ def main():
 
             images = [PilImage.open(image) for image in image_names]
 
-            with open('images_feed.pickle','wb') as f:
+            with open(f'images_feed_user{add}.pickle','wb') as f:
                 pickle.dump(images,f)
 
             print("sending images")
-            with open("images_feed.pickle",'rb') as f:
+            with open(f"images_feed_user{add}.pickle",'rb') as f:
                 data = f.read(4096)
                 while data:
                     c.send(data)
@@ -117,7 +117,7 @@ def main():
                 c.send("no more data".encode())
             print(c.recv(4096).decode("utf-8"))
 
-            os.remove('images_feed.pickle')
+            os.remove(f'images_feed_user{add}.pickle')
             os.chdir('..')
             os.chdir('..')
             
@@ -131,16 +131,16 @@ def main():
             print("sending thumbnails")
             thumbnail_image = [PilImage.open(thumbnail) for thumbnail in thumbnails]
 
-            with open('thumbnail_image_feed.pickle','wb') as f:
+            with open(f'thumbnail_image_feed_user{add}.pickle','wb') as f:
                 pickle.dump(thumbnail_image,f)
 
-            with open('thumbnail_image_feed.pickle','rb') as f:
+            with open(f'thumbnail_image_feed_user{add}.pickle','rb') as f:
                 data = f.read(4096)
                 while data:
                     c.sendall(data)
                     data = f.read(4096)
             print("all thumbnails sent")
-            os.remove("thumbnail_image_feed.pickle")
+            os.remove(f"thumbnail_image_feed_user{add}.pickle")
 
         c.close()
         

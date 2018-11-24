@@ -11,6 +11,7 @@ def account_settings(flag, new_detail,user_detail):
 
     with conn_settings:
         if flag == 0:
+            new_detail = new_detail.upper()
             cursor_settings.execute("""UPDATE accounts
                          SET first = (:new_first)
                          WHERE email = (:email)""",{
@@ -19,6 +20,7 @@ def account_settings(flag, new_detail,user_detail):
                          })
             user_detail['first'] = new_detail
         elif flag == 1:
+            new_detail = new_detail.upper()
             cursor_settings.execute("""UPDATE accounts
                          SET last = (:new_last)
                          WHERE email = (:email)""",{
@@ -112,7 +114,7 @@ def main():
         elif flag == 'propic':
 
             print('receiving propic')
-            with open('image.pickle','wb') as f:
+            with open(f'image_propic.pickle_user{add}','wb') as f:
                 data = c.recv(4096)
                 while True:
                     if data.endswith(b'no more data'):
@@ -124,10 +126,10 @@ def main():
             c.sendall('propic received by client'.encode())
             print('propic received')
 
-            with open('image.pickle','rb') as f:
+            with open(f'image_propic.pickle_user{add}','rb') as f:
                 propic,email = pickle.load(f)
 
-            os.remove('image.pickle')
+            os.remove(f'image_propic.pickle_user{add}')
         
             propic.thumbnail((150,150))
             propic.save(f"account_user{email}/profile_pic_user{email}/propic.jpg")

@@ -10,7 +10,7 @@ def search(detail,user_email):
     conn_search = sqlite3.connect("copro.db")
     cursor_search = conn_search.cursor()
 
-    detail = detail.strip()
+    detail = detail.strip().upper()
     with conn_search:
         try:
             first,last = detail.split(" ")

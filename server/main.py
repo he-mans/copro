@@ -38,15 +38,6 @@ def start_server_create_account():
         print('traceback for above create_account error')
         traceback.print_exc()
 
-def start_server_upload_feed():
-    try:
-        server_upload_feed.main()
-    except Exception as e:
-        print('server_upload_feed raised exception :',end = ' ')
-        print(e)
-        print('traceback for above upload_feed error')
-        traceback.print_exc()
-
 def start_server_search():
     try:
         server_search.main()
@@ -101,8 +92,6 @@ if __name__ == '__main__':
     threads.append(login)
     feed = threading.Thread(target= start_server_feed)
     threads.append(feed)
-    upload_feed = threading.Thread(target= start_server_upload_feed)
-    threads.append(upload_feed)
     search = threading.Thread(target= start_server_search)
     threads.append(search)
     friend = threading.Thread(target= start_server_friend)

@@ -31,7 +31,7 @@ def main():
         print("email received")
 
         print('receiving image')
-        with open("image_upload_feed.pickle",'wb') as f:
+        with open(f'image_upload_feed_user.pickle_user_{add}','wb') as f:
             data = c.recv(4096)
             while data:
                 if data.endswith(b'no more data'):
@@ -43,8 +43,8 @@ def main():
         print("image_received")
 
         c.close()
-        
-        with open('image_upload_feed.pickle','rb') as f:
+    
+        with open(f'image_upload_feed_user.pickle_user_{add}','rb') as f:
             image = pickle.load(f)
 
         conn_upload_feed = sqlite3.connect('copro.db')
@@ -76,7 +76,9 @@ def main():
                             })
                 friend = cursor_upload.fetchone()[0]
                 image.save(f"account_user{friend}/feed_user{friend}/{upload_time}_image_account-{user_id}.jpg")
-        os.remove('image_upload_feed.pickle')
+
+        os.remove(f'image_upload_feed_user.pickle_user_{add}')
+        
     s.close()
 
 if __name__ == '__main__':
