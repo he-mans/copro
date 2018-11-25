@@ -3,6 +3,8 @@ from functools import partial
 import sys
 import client
 from datetime import datetime 
+import time
+import threading
         
 QtGui.QApplication.setStyle("Plastique")
 try:
@@ -18,6 +20,30 @@ try:
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
+
+
+class feed_thread(QtCore.QThread):
+    signal = QtCore.pyqtSignal(list)
+    def __init__(self,email,parent = None):
+        QtCore.QThread.__init__(self,parent)
+        self.email = email
+
+    def run(self):
+        self.running = True
+        time.sleep(5)
+        images,thumbnails,full_names,likes,ids,people_liked,emails,times= client.fetch_feed(self.email)
+        feed = [(image,full_name,thumbnail,like,p_id,peoples,email,time) for image,full_name,thumbnail,like,p_id,peoples,email,time in zip(
+                        images,full_names,thumbnails,likes,ids,people_liked,emails,times)]
+        self.signal.emit(feed)
+
+class search_thread():
+    pass
+
+class 
+
+class scout_thread():
+
+    pass
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -244,8 +270,8 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
         self.label_2.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
-        #font.setFamily(_fromUtf8("Ubuntu"))
+        font = QtGui.QFont()
+        font.setFamily(_fromUtf8("Ubuntu"))
         self.label_2.setFont(font)
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.gridLayout_3.addWidget(self.label_2, 8, 1, 1, 1)
@@ -798,6 +824,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.copro)
 
         self.variable_assets()
+        
         self.retranslateUi(MainWindow)
         self.stackedWidget.setCurrentIndex(0)
         self.stackedWidget_2.setCurrentIndex(0)
@@ -896,7 +923,7 @@ class Ui_MainWindow(object):
     def cancle(self):
         self.le_new_name.clear()
         self.change_page(second = 3)
-    
+
     def create_account(self,first = None):
         status = client.create(self.le_first_su.text(),self.le_last_su.text(),
                                      self.le_email_su.text(),self.le_pass_su.text())
@@ -980,20 +1007,9 @@ class Ui_MainWindow(object):
     def change_to_search_page(self):
         self.change_page(second=1)
         if self.verticalLayout_11.count() == 0:
-            horizontal_layout = QtGui.QHBoxLayout()
-            spacerItem = QtGui.QSpacerItem(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
-            lable = QtGui.QLabel(self.scrollAreaWidgetContents)
-            sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
-            sizePolicy.setHorizontalStretch(0)
-            sizePolicy.setVerticalStretch(0)
-            sizePolicy.setHeightForWidth(lable.sizePolicy().hasHeightForWidth())
-            lable.setSizePolicy(sizePolicy)
-            lable.setText(_fromUtf8(""))
-            lable.setPixmap(QtGui.QPixmap("default_icons/search_flag.png"))
-            horizontal_layout.addItem(spacerItem)
-            horizontal_layout.addWidget(lable)
-            self.verticalLayout_11.addLayout(horizontal_layout)
-
+            flag_location = "default_icons/search_flag.png"
+            flag = self.generate_flag(flag_location = flag_location)
+            self.verticalLayout_11.addLayout(flag)
 
     def search(self):
         self.search_result,self.friend_list,self.sent = client.search(self.le_search.text(),self.user_detail["email"])
@@ -1004,19 +1020,8 @@ class Ui_MainWindow(object):
         self.page_elements = {}
 
         if self.search_result == ():
-            no_search_flag = QtGui.QLabel(self.scrollAreaWidgetContents)
-            font = QtGui.QFont()
-            font.setFamily(_fromUtf8("Ubuntu"))
-            font.setPointSize(9)
-            no_search_flag.setFont(font)
-            no_search_flag.setText('no result found')
-            horizontal_layout = QtGui.QHBoxLayout()
-            spacer = QtGui.QSpacerItem(15,15,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-            spacer2 = QtGui.QSpacerItem(15,15,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-            horizontal_layout.addItem(spacer)
-            horizontal_layout.addWidget(no_search_flag)
-            horizontal_layout.addItem(spacer2)
-            self.verticalLayout_11.insertLayout(0,horizontal_layout)
+            flag = self.generate_flag(flag_text = 'no result found')
+            self.verticalLayout_11.addLayout(flag)
         
         for i,result in enumerate(self.search_result):
             self.page_elements["li_fp"+str(i)] = QtGui.QLabel(self.scrollAreaWidgetContents)
@@ -1099,7 +1104,6 @@ class Ui_MainWindow(object):
         
         self.spacerItem_fp = QtGui.QSpacerItem(15, 10, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         self.verticalLayout_11.addItem(self.spacerItem_fp)
-        #self.search_result = []
 
     def send_frnd_req(self,button,result):
         button.setText("Friend Request sent")
@@ -1115,19 +1119,9 @@ class Ui_MainWindow(object):
         self.change_page(second = 2)
         self.page_elements_fr = {}
         if self.req_list == []:
-            horizontal_layout = QtGui.QHBoxLayout()
-            spacerItem = QtGui.QSpacerItem(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
-            lable = QtGui.QLabel(self.scrollAreaWidgetContents)
-            sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
-            sizePolicy.setHorizontalStretch(0)
-            sizePolicy.setVerticalStretch(0)
-            sizePolicy.setHeightForWidth(lable.sizePolicy().hasHeightForWidth())
-            lable.setSizePolicy(sizePolicy)
-            lable.setText(_fromUtf8(""))
-            lable.setPixmap(QtGui.QPixmap("default_icons/friend_flag.png"))
-            horizontal_layout.addItem(spacerItem)
-            horizontal_layout.addWidget(lable)
-            self.verticalLayout_12.addLayout(horizontal_layout)
+            flag_location = "default_icons/friend_flag.png"
+            flag = self.generate_flag(flag_location = flag_location)
+            self.verticalLayout_12.addLayout(flag)
             return
         
         for i,request in enumerate(self.req_list):
@@ -1222,13 +1216,13 @@ class Ui_MainWindow(object):
         self.verticalLayout_12.addItem(spacerItem_fr)
     
     def accept_frnd_req(self,args):
-            button_accept,request,button_reject = args
-            button_accept.setText("Request Accepted")
-            button_accept.setEnabled(False)
-            button_reject.setEnabled(False)
-            self.req_list.remove(request)
-            request = request.split(" ")
-            client.accept_req(request[2] ,self.req_list,self.user_detail["id"])
+        button_accept,request,button_reject = args
+        button_accept.setText("Request Accepted")
+        button_accept.setEnabled(False)
+        button_reject.setEnabled(False)
+        self.req_list.remove(request)
+        request = request.split(" ")
+        client.accept_req(request[2] ,self.req_list,self.user_detail["id"])
 
     def reject_frnd_req(self,args):
         button_accept,request,button_reject = args
@@ -1240,28 +1234,29 @@ class Ui_MainWindow(object):
         request = request.split(' ')
         client.reject_request(self.user_detail["id"],new_req_list,request[2])
 
+
     def feed_page(self):
         self.change_page(first = 2,second = 0)
         self.clear(self.verticalLayout_22)
-        images,thumbnails,full_names,likes,ids,people_liked,emails,times= client.fetch_feed(self.user_detail["email"])
-        self.feed = [(image,full_name,thumbnail,like,p_id,peoples,email,time) for image,full_name,thumbnail,like,p_id,peoples,email,time in zip(
-                        images,full_names,thumbnails,likes,ids,people_liked,emails,times)]
+        
+        loading = self.generate_loading_icon()
+        self.verticalLayout_22.addLayout(loading)
+        
+
+        self.thread = feed_thread(self.user_detail["email"])
+        self.thread.start()
+        self.thread.signal.connect(self.display_feed)
+        
+
+    def display_feed(self,feed):
+        self.clear(self.verticalLayout_22)
         self.feed_page_elements = {}
+        self.feed = feed
         if self.feed==[]:
-            horizontal_layout = QtGui.QHBoxLayout()
-            spacerItem = QtGui.QSpacerItem(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
-            lable = QtGui.QLabel(self.scrollAreaWidgetContents)
-            sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
-            sizePolicy.setHorizontalStretch(0)
-            sizePolicy.setVerticalStretch(0)
-            sizePolicy.setHeightForWidth(lable.sizePolicy().hasHeightForWidth())
-            lable.setSizePolicy(sizePolicy)
-            lable.setText(_fromUtf8(""))
-            lable.setPixmap(QtGui.QPixmap("default_icons/feed_flag.png"))
-            horizontal_layout.addItem(spacerItem)
-            horizontal_layout.addWidget(lable)
-            self.verticalLayout_22.addLayout(horizontal_layout)
-            return
+            flag_location = "default_icons/feed_flag.png"
+            flag = self.generate_flag(flag_location = flag_location)
+            self.verticalLayout_22.addLayout(flag)
+            return   
         
         for i,feed_contents in enumerate(self.feed):
             self.feed_page_elements["horizontalLayout_feed"+str(i)] = QtGui.QHBoxLayout()
@@ -1411,19 +1406,9 @@ class Ui_MainWindow(object):
         self.scout_ = [(image,like,people,time) for image,like,people,time in zip(images,likes,people_liked,time_post) ]
         self.scout_page_elements={}
         if self.scout_==[]:
-            horizontal_layout = QtGui.QHBoxLayout()
-            spacerItem = QtGui.QSpacerItem(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
-            lable = QtGui.QLabel(self.scrollAreaWidgetContents_3)
-            sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
-            sizePolicy.setHorizontalStretch(0)
-            sizePolicy.setVerticalStretch(0)
-            sizePolicy.setHeightForWidth(lable.sizePolicy().hasHeightForWidth())
-            lable.setSizePolicy(sizePolicy)
-            lable.setText(_fromUtf8(""))
-            lable.setPixmap(QtGui.QPixmap("default_icons/feed_flag.png"))
-            horizontal_layout.addItem(spacerItem)
-            horizontal_layout.addWidget(lable)
-            self.verticalLayout_23.addLayout(horizontal_layout)
+            flag_location = "default_icons/feed_flag.png"
+            flag = self.generate_flag(flag_location = flag_location)
+            self.verticalLayout_23.addLayout(flag)
             return
 
         for i,scout_elements in enumerate(self.scout_):
@@ -1549,6 +1534,41 @@ class Ui_MainWindow(object):
         msg_box.setText(text)
         msg_box.setStandardButtons(QtGui.QMessageBox.Ok)
         msg_box.exec_()
+
+    def generate_loading_icon(self):
+        loading_icon = QtGui.QLabel()
+        loading = QtGui.QMovie('default_icons/loading.gif')
+        loading_icon.setMovie(loading)
+        loading.start()
+        horizontal_layout = QtGui.QHBoxLayout()
+        spacer = QtGui.QSpacerItem(15,15,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        spacer2 = QtGui.QSpacerItem(15,15,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        horizontal_layout.addItem(spacer)
+        horizontal_layout.addWidget(loading_icon)
+        horizontal_layout.addItem(spacer2)
+        return horizontal_layout
+
+    def generate_flag(self,flag_location=None,flag_text = None):
+        font = QtGui.QFont()
+        font.setFamily("ubuntu")
+        font.setPointSize(9)
+        horizontal_layout = QtGui.QHBoxLayout()
+        spacerItem = QtGui.QSpacerItem(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+        lable = QtGui.QLabel()
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(lable.sizePolicy().hasHeightForWidth())
+        lable.setSizePolicy(sizePolicy)
+        lable.setText(_fromUtf8(""))
+        if flag_text == None:
+            lable.setPixmap(QtGui.QPixmap(flag_location))
+        else:
+            lable.setFont(font)
+            lable.setText(flag_text)
+        horizontal_layout.addItem(spacerItem)
+        horizontal_layout.addWidget(lable)
+        return horizontal_layout
 
     def get_time_difference(self,time_post):
         time_diff = str(datetime.now()-time_post)
