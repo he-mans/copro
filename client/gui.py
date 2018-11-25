@@ -30,20 +30,52 @@ class feed_thread(QtCore.QThread):
 
     def run(self):
         self.running = True
-        time.sleep(5)
+        #time.sleep(5)
         images,thumbnails,full_names,likes,ids,people_liked,emails,times= client.fetch_feed(self.email)
         feed = [(image,full_name,thumbnail,like,p_id,peoples,email,time) for image,full_name,thumbnail,like,p_id,peoples,email,time in zip(
                         images,full_names,thumbnails,likes,ids,people_liked,emails,times)]
         self.signal.emit(feed)
 
-class search_thread():
-    pass
+class search_thread(QtCore.QThread):
+    signal = QtCore.pyqtSignal(tuple,list,list)
+    def __init__(self,searched,email,parent=None):
+        QtCore.QThread.__init__(self,parent)
+        self.email = email
+        self.searched = searched
+    
+    def run(self):
+        self.running = True
+        #time.sleep(2)
+        search_result,friend_list,sent = client.search(self.searched,self.email)
+        self.signal.emit(search_result,friend_list,sent)
 
-class 
+class friend_thread(QtCore.QThread):
+    signal = QtCore.pyqtSignal(list)
+    def __init__(self,email,parent=None):
+        QtCore.QThread.__init__(self,parent)
+        self.email = email
 
-class scout_thread():
+    def run(self):
+        self.running = True
+        #time.sleep(2)
+        req_list = client.fetch_req(self.email)
+        self.signal.emit(req_list)
 
-    pass
+class scout_thread(QtCore.QThread):
+    signal = QtCore.pyqtSignal(tuple)
+    def __init__(self,email,person_email,person_id,fullname,parent = None):
+        QtCore.QThread.__init__(self,parent)
+        self.user_email = email
+        self.person_id = person_id
+        self.person_email = person_email
+        self.fullname = fullname
+
+    def run(self):
+        self.running = True
+        #time.sleep(5)
+        details = client.fetch_scout_view(self.user_email,self.person_email,self.person_id)
+        details+=(self.person_email,self.person_id,self.fullname)
+        self.signal.emit(details)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -79,9 +111,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.le_email.sizePolicy().hasHeightForWidth())
         self.le_email.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Comic Sans MS"))
-        font.setPointSize(10)
+        font = self.generate_font(family = "Comic Sans MS", point_size = 10)
         self.le_email.setFont(font)
         self.le_email.setStyleSheet(_fromUtf8("background-color: rgb(222, 209, 193);"))
         self.le_email.setText(_fromUtf8(""))
@@ -95,9 +125,6 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.le_password.sizePolicy().hasHeightForWidth())
         self.le_password.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
-        #font.setFamily(_fromUtf8("Comic Sans MS"))
-        #font.setPointSize(10)
         self.le_password.setFont(font)
         self.le_password.setStyleSheet(_fromUtf8("background-color: rgb(222, 209, 193);"))
         self.le_password.setEchoMode(QtGui.QLineEdit.Password)
@@ -116,10 +143,7 @@ class Ui_MainWindow(object):
         spacerItem6 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem6, 4, 0, 1, 1)
         self.btn_login = QtGui.QPushButton(self.login_page)
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Ubuntu Condensed"))
-        font.setBold(True)
-        font.setPointSize(10)
+        font = self.generate_font(family = "Ubuntu Condensed", point_size = 10, set_bold = True)
         self.btn_login.setFont(font)
         self.btn_login.setStyleSheet(_fromUtf8("background-color: rgb(69, 142, 255);"))
         self.btn_login.setAutoRepeat(False)
@@ -135,9 +159,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Ubuntu"))
-        font.setPointSize(9)
+        font = self.generate_font(family = "Ubuntu", point_size = 9)
         self.label.setFont(font)
         self.label.setObjectName(_fromUtf8("label"))
         self.gridLayout.addWidget(self.label, 5, 1, 1, 1)
@@ -147,9 +169,6 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.btn_sign_up.sizePolicy().hasHeightForWidth())
         self.btn_sign_up.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
-        #font.setFamily(_fromUtf8("Ubuntu"))
-        #font.setPointSize(9)
         self.btn_sign_up.setFont(font)
         self.btn_sign_up.setFlat(True)
         self.btn_sign_up.setObjectName(_fromUtf8("btn_sign_up"))
@@ -184,9 +203,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.le_first_su.sizePolicy().hasHeightForWidth())
         self.le_first_su.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Comic Sans MS"))
-        font.setPointSize(10)
+        font = self.generate_font(family = "Comic sans MS", point_size = 10)
         self.le_first_su.setFont(font)
         self.le_first_su.setStyleSheet(_fromUtf8("background-color: rgb(222, 209, 193);"))
         self.le_first_su.setText(_fromUtf8(""))
@@ -198,9 +215,6 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.le_last_su.sizePolicy().hasHeightForWidth())
         self.le_last_su.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
-        #font.setFamily(_fromUtf8("Comic Sans MS"))
-        #font.setPointSize(10)
         self.le_last_su.setFont(font)
         self.le_last_su.setStyleSheet(_fromUtf8("background-color: rgb(222, 209, 193);"))
         self.le_last_su.setObjectName(_fromUtf8("le_last_su"))
@@ -211,9 +225,6 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.le_email_su.sizePolicy().hasHeightForWidth())
         self.le_email_su.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
-        #font.setFamily(_fromUtf8("Comic Sans MS"))
-        #font.setPointSize(10)
         self.le_email_su.setFont(font)
         self.le_email_su.setStyleSheet(_fromUtf8("background-color: rgb(222, 209, 193);"))
         self.le_email_su.setObjectName(_fromUtf8("le_email_su"))
@@ -224,9 +235,6 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.le_pass_su.sizePolicy().hasHeightForWidth())
         self.le_pass_su.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
-        #font.setFamily(_fromUtf8("Comic Sans MS"))
-        #font.setPointSize(10)
         self.gridLayout_3.addWidget(self.line, 1, 0, 1, 5)
         self.le_pass_su.setFont(font)
         self.le_pass_su.setStyleSheet(_fromUtf8("background-color: rgb(222, 209, 193);"))
@@ -234,10 +242,7 @@ class Ui_MainWindow(object):
         self.le_pass_su.setObjectName(_fromUtf8("le_pass_su"))
         self.verticalLayout_2.addWidget(self.le_pass_su)
         self.btn_sign_up_su = QtGui.QPushButton(self.sign_up_page)
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Ubuntu Condensed"))
-        font.setPointSize(10)
-        font.setBold(True)
+        font = self.generate_font(family="Ubuntu Condensed",point_size = 10, set_bold = True)
         self.btn_sign_up_su.setFont(font)
         self.btn_sign_up_su.setStyleSheet(_fromUtf8("background-color: rgb(69, 142, 255);"))
         self.btn_sign_up_su.setAutoRepeat(False)
@@ -270,8 +275,9 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
         self.label_2.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Ubuntu"))
+        font = self.generate_font(family = "Ubuntu",point_size=10)
+        #font = QtGui.QFont()
+        #font.setFamily(_fromUtf8("Ubuntu"))
         self.label_2.setFont(font)
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.gridLayout_3.addWidget(self.label_2, 8, 1, 1, 1)
@@ -281,10 +287,8 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.btn_back_su.sizePolicy().hasHeightForWidth())
         self.btn_back_su.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Ubuntu"))
-        font.setPointSize(10)
-        font.setWeight(50)
+        font = self.generate_font(family = "Ubuntu",point_size = 10)
+        #font.setWeight(50)
         self.btn_back_su.setFont(font)
         self.btn_back_su.setFlat(True)
         self.btn_back_su.setObjectName(_fromUtf8("btn_back_su"))
@@ -364,8 +368,6 @@ class Ui_MainWindow(object):
         spacerItem28 = QtGui.QSpacerItem(28, 28, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
         self.gridLayout_4.addItem(spacerItem28, 1, 6, 2, 1)
         self.stackedWidget_2 = QtGui.QStackedWidget(self.home_page)
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Bahnschrift Light"))
         self.stackedWidget_2.setFont(font)
         self.stackedWidget_2.setObjectName(_fromUtf8("stackedWidget_2"))
 #------------------------------------------------------------------------------------------------------------------------------------------------------#        
@@ -403,9 +405,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.le_search.sizePolicy().hasHeightForWidth())
         self.le_search.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Comic Sans MS"))
-        font.setPointSize(12)
+        font = self.generate_font(family = "Comic Sans MS", point_size = 12)
         self.le_search.setFont(font)
         self.le_search.setStyleSheet(_fromUtf8("background-color: rgb(222, 209, 193);"))
         self.le_search.setObjectName(_fromUtf8("lineEdit"))
@@ -416,11 +416,8 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.btn_clear.sizePolicy().hasHeightForWidth())
         self.btn_clear.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
-        #font.setFamily(_fromUtf8("Comic Sans MS"))
-        font.setPointSize(10)
-        font.setBold(True)
-        font.setWeight(75)
+        font = self.generate_font(family = "Comic Sans MS", point_size = 10, set_bold = True)
+        #font.setWeight(75)
         self.btn_clear.setFont(font)
         self.btn_clear.setStyleSheet(_fromUtf8(""))
         self.btn_clear.setAutoDefault(True)
@@ -434,10 +431,6 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.btn_search.sizePolicy().hasHeightForWidth())
         self.btn_search.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
-        #font.setFamily(_fromUtf8("Comic Sans MS"))
-        #font.setPointSize(10)
-        #font.setBold(True)
         #font.setWeight(75)
         self.btn_search.setFont(font)
         self.btn_search.setStyleSheet(_fromUtf8(""))
@@ -470,10 +463,7 @@ class Ui_MainWindow(object):
         self.frnd_req.setObjectName(_fromUtf8("frnd_req"))
         self.gridLayout_8 = QtGui.QGridLayout(self.frnd_req)
         self.gridLayout_8.setObjectName(_fromUtf8("gridLayout_8"))
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Ubuntu Condensed"))
-        font.setPointSize(10)
-        font.setBold(True)
+        font = self.generate_font(family = "Ubuntu Condensed", point_size=10,set_bold = True)
         self.scrollArea_2 = QtGui.QScrollArea(self.frnd_req)
         self.scrollArea_2.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.scrollArea_2.setFrameShape(QtGui.QFrame.NoFrame)
@@ -567,13 +557,14 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.label_4.sizePolicy().hasHeightForWidth())
         self.label_4.setSizePolicy(sizePolicy)
+        font = self.generate_font(family = "Ubuntu Condensed",point_size=15,set_bold=True)
         #font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Ubuntu Condensed"))
-        font.setPointSize(15)
-        font.setBold(True)
-        font.setUnderline(True)
-        font.setWeight(75)
-        font.setKerning(False)
+        #font.setFamily(_fromUtf8("Ubuntu Condensed"))
+        #font.setPointSize(15)
+        #font.setBold(True)
+        #font.setUnderline(True)
+        #font.setWeight(75)
+        #font.setKerning(False)
         self.label_4.setFont(font)
         self.label_4.setObjectName(_fromUtf8("label_4"))
         self.verticalLayout_8.addWidget(self.label_4)
@@ -603,11 +594,6 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.btn_last_as.sizePolicy().hasHeightForWidth())
         self.btn_last_as.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
-        #font.setFamily(_fromUtf8("Ubuntu Condensed"))
-        #font.setPointSize(11)
-        #font.setBold(False)
-        #font.setItalic(False)
         #font.setWeight(50)
         self.btn_last_as.setFont(font)
         self.btn_last_as.setStyleSheet(_fromUtf8("Text-align:left"))
@@ -620,12 +606,6 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.btn_email_as.sizePolicy().hasHeightForWidth())
         self.btn_email_as.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
-        #font.setFamily(_fromUtf8("Ubuntu Condensed"))
-        #font.setPointSize(11)
-        #font.setBold(False)
-        #font.setItalic(False)
-        #font.setWeight(50)
         self.btn_email_as.setFont(font)
         self.btn_email_as.setStyleSheet(_fromUtf8("Text-align:left"))
         self.btn_email_as.setFlat(True)
@@ -637,12 +617,6 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.btn_pass_as.sizePolicy().hasHeightForWidth())
         self.btn_pass_as.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
-        #font.setFamily(_fromUtf8("Ubuntu Condensed"))
-        #font.setPointSize(11)
-        #font.setBold(False)
-        #font.setItalic(False)
-        #font.setWeight(50)
         self.btn_pass_as.setFont(font)
         self.btn_pass_as.setStyleSheet(_fromUtf8("Text-align:left"))
         self.btn_pass_as.setFlat(True)
@@ -654,12 +628,6 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.btn_propic_as.sizePolicy().hasHeightForWidth())
         self.btn_propic_as.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
-        #font.setFamily(_fromUtf8("Ubuntu Condensed"))
-        #font.setPointSize(11)
-        #font.setBold(False)
-        #font.setItalic(False)
-        #font.setWeight(50)
         self.btn_propic_as.setFont(font)
         self.btn_propic_as.setStyleSheet(_fromUtf8("Text-align:left"))
         self.btn_propic_as.setFlat(True)
@@ -735,8 +703,6 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_3.sizePolicy().hasHeightForWidth())
         self.label_3.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
-        #font.setFamily(_fromUtf8("Ubuntu Condensed"))
         font.setPointSize(14)
         self.label_3.setFont(font)
         self.label_3.setObjectName(_fromUtf8("label_3"))
@@ -747,7 +713,6 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.le_new_name.sizePolicy().hasHeightForWidth())
         self.le_new_name.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
         font.setFamily(_fromUtf8("Comic Sans MS"))
         font.setPointSize(10)
         self.le_new_name.setFont(font)
@@ -762,11 +727,8 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.btn_done_as.sizePolicy().hasHeightForWidth())
         self.btn_done_as.setSizePolicy(sizePolicy)
         self.btn_cancle_as.setSizePolicy(sizePolicy)
-        #font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Ubuntu Condensed"))
-        font.setPointSize(11)
-        font.setBold(False)
-        font.setWeight(50)
+        font = self.generate_font(family = "Ubuntu Condensed",point_size = 11)
+        #font.setWeight(50)
         self.btn_done_as.setFont(font)
         self.btn_cancle_as.setFont(font)
         self.btn_done_as.setStyleSheet(_fromUtf8("background-color: rgb(69, 142, 255);"))
@@ -1012,11 +974,19 @@ class Ui_MainWindow(object):
             self.verticalLayout_11.addLayout(flag)
 
     def search(self):
-        self.search_result,self.friend_list,self.sent = client.search(self.le_search.text(),self.user_detail["email"])
-        self.search_page()
-    
-    def search_page(self):
+        self.thread_search = search_thread(self.le_search.text(),self.user_detail["email"])
+        self.thread_search.start()
+        self.thread_search.signal.connect(self.search_page)
+
         self.clear(self.verticalLayout_11)
+        loading = self.generate_loading_icon()
+        self.verticalLayout_11.addLayout(loading)
+
+    def search_page(self,search_result,friend_list,sent):
+        self.clear(self.verticalLayout_11)
+        self.search_result = search_result
+        self.friend_list = friend_list
+        self.sent = sent
         self.page_elements = {}
 
         if self.search_result == ():
@@ -1047,14 +1017,8 @@ class Ui_MainWindow(object):
             sizePolicy.setVerticalStretch(1)
             sizePolicy.setHeightForWidth( self.page_elements["ln_fp"+str(i)].sizePolicy().hasHeightForWidth())
             self.page_elements["ln_fp"+str(i)].setSizePolicy(sizePolicy)
-            font = QtGui.QFont()
-            font.setFamily(_fromUtf8("Ubuntu Condensed"))
-            font.setPointSize(12)
-            font.setBold(False)
-            font.setItalic(False)
-            font.setWeight(50)
-            font.setStrikeOut(False)
-            font.setKerning(True)
+            font = self.generate_font(family = "Ubuntu Condensed",point_size = 12)
+            #font.setKerning(True)
             self.page_elements["ln_fp"+str(i)].setFont(font)
             self.page_elements["verticalLayout_fp"+str(i)].addWidget( self.page_elements["ln_fp"+str(i)])
             self.page_elements["btn_fr_fp"+str(i)].setStyleSheet(_fromUtf8("Text-align:left"))
@@ -1067,14 +1031,7 @@ class Ui_MainWindow(object):
             self.page_elements["btn_fr_fp"+str(i)].setIcon(QtGui.QIcon("default_icons/accept.png"))
             self.page_elements["btn_fr_fp"+str(i)].setIconSize(QtCore.QSize(20,20))
             self.page_elements["btn_fr_fp"+str(i)].setObjectName(_fromUtf8("btn_fr_fp"+str(i)))
-            #font = QtGui.QFont()
-            #font.setFamily(_fromUtf8("Ubuntu Condensed"))
             font.setPointSize(11)
-            #font.setBold(False)
-            #font.setItalic(False)
-            #font.setWeight(50)
-            #font.setStrikeOut(False)
-            #font.setKerning(True)
             self.page_elements["btn_fr_fp"+str(i)].setFont(font)
             self.page_elements["btn_fr_fp"+str(i)].clicked.connect(
                 partial(self.send_frnd_req,self.page_elements["btn_fr_fp"+str(i)],result))
@@ -1108,15 +1065,25 @@ class Ui_MainWindow(object):
     def send_frnd_req(self,button,result):
         button.setText("Friend Request sent")
         button.setEnabled(False)
-        client.send_frnd_req(self.user_detail["email"],result[2])
+        self.send_req = threading.Thread(target = client.send_frnd_req,args = (self.user_detail["email"],result[2]))
+        self.send_req.start()
+        self.send_req.setDaemon = True
 
     def fetch_req(self):
-            self.req_list = client.fetch_req(self.user_detail["email"])
-            self.friend_req()
+            self.change_page(second = 2)
+            
+            self.thread_friend = friend_thread(self.user_detail["email"])
+            self.thread_friend.start()
 
-    def friend_req(self):
+            loading = self.generate_loading_icon()
+            self.clear(self.verticalLayout_12)
+            self.verticalLayout_12.addLayout(loading)
+            
+            self.thread_friend.signal.connect(self.friend_req)
+
+    def friend_req(self,req_list):
         self.clear(self.verticalLayout_12)
-        self.change_page(second = 2)
+        self.req_list = req_list
         self.page_elements_fr = {}
         if self.req_list == []:
             flag_location = "default_icons/friend_flag.png"
@@ -1154,14 +1121,7 @@ class Ui_MainWindow(object):
             sizePolicy.setVerticalStretch(0)
             sizePolicy.setHeightForWidth( self.page_elements_fr["ln_fr"+str(i)].sizePolicy().hasHeightForWidth())
             self.page_elements_fr["ln_fr"+str(i)].setSizePolicy(sizePolicy)
-            font = QtGui.QFont()
-            font.setFamily(_fromUtf8("Ubuntu Condensed"))
-            font.setPointSize(12)
-            font.setBold(False)
-            font.setItalic(False)
-            font.setWeight(50)
-            font.setStrikeOut(False)
-            font.setKerning(True)
+            font = self.generate_font(family = "Ubuntu Condensed", point_size = 12,kerning = True)
             self.page_elements_fr["ln_fr"+str(i)].setFont(font)
             self.page_elements_fr["verticalLayout_fr"+str(i)].addWidget( self.page_elements_fr["ln_fr"+str(i)])
             self.page_elements_fr["btn_fr"+str(i)].setStyleSheet(_fromUtf8("Text-align:left"))
@@ -1176,14 +1136,7 @@ class Ui_MainWindow(object):
             self.page_elements_fr["btn_fr_reject"+str(i)].setSizePolicy(sizePolicy)
             self.page_elements_fr["btn_fr_reject"+str(i)].setFlat(True)
             self.page_elements_fr["btn_fr_reject"+str(i)].setObjectName(_fromUtf8("btn_fr_reject"+str(i)))
-            #font = QtGui.QFont()
-            #font.setFamily(_fromUtf8("Ubuntu Condensed"))
             font.setPointSize(11)
-            #font.setBold(False)
-            #font.setItalic(False)
-            #font.setWeight(50)
-            #font.setStrikeOut(False)
-            #font.setKerning(True)
             self.page_elements_fr["btn_fr"+str(i)].setFont(font)
             self.page_elements_fr["btn_fr_reject"+str(i)].setFont(font)
             self.page_elements_fr["btn_fr"+str(i)].clicked.connect(partial(self.accept_frnd_req,
@@ -1243,9 +1196,9 @@ class Ui_MainWindow(object):
         self.verticalLayout_22.addLayout(loading)
         
 
-        self.thread = feed_thread(self.user_detail["email"])
-        self.thread.start()
-        self.thread.signal.connect(self.display_feed)
+        self.thread_feed = feed_thread(self.user_detail["email"])
+        self.thread_feed.start()
+        self.thread_feed.signal.connect(self.display_feed)
         
 
     def display_feed(self,feed):
@@ -1268,9 +1221,7 @@ class Ui_MainWindow(object):
             self.feed_page_elements["btn_like"+str(i)] = QtGui.QPushButton(self.scrollAreaWidgetContents_3)
             self.feed_page_elements["time_stamp"+str(i)] = QtGui.QLabel(self.scrollAreaWidgetContents_3)
             self.feed_page_elements["time_stamp"+str(i)].setObjectName("time_stamp"+str(i))
-            font = QtGui.QFont()
-            font.setFamily(_fromUtf8("Ubuntu"))
-            font.setPointSize(8)
+            font = self.generate_font(family = "Ubuntu",point_size = 8)
             self.feed_page_elements["time_stamp"+str(i)].setFont(font)
 
             sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
@@ -1287,9 +1238,7 @@ class Ui_MainWindow(object):
             self.feed_page_elements["horizontalLayout_like"+str(i)].addWidget(self.feed_page_elements["btn_like"+str(i)])
             self.feed_page_elements["l_count"+str(i)] = QtGui.QLabel(self.scrollAreaWidgetContents_3)
             self.feed_page_elements["l_count"+str(i)].setObjectName(_fromUtf8("l_count"+str(i)))
-            font = QtGui.QFont()
-            font.setFamily(_fromUtf8("Ubuntu Condensed"))
-            font.setPointSize(13)
+            font = self.generate_font(family = "Ubuntu Condensed",point_size = 13)
             self.feed_page_elements["l_count"+str(i)].setFont(font)
             self.feed_page_elements["l_count"+str(i)].setText(feed_contents[3])
 
@@ -1299,7 +1248,7 @@ class Ui_MainWindow(object):
                 self.feed_page_elements["btn_like"+str(i)].clicked.connect(partial(self.like , 
                 (self.feed_page_elements["btn_like"+str(i)],
                 self.feed_page_elements["l_count"+str(i)],
-                feed_contents[0],feed_contents[4],feed_contents[6],"like")))
+                feed_contents[0],feed_contents[4],feed_contents[6],feed_contents[3],"like")))
 
             else:
                 self.feed_page_elements["btn_like"+str(i)].setIcon(QtGui.QIcon("default_icons/liked.png"))
@@ -1307,7 +1256,7 @@ class Ui_MainWindow(object):
                 self.feed_page_elements["btn_like"+str(i)].clicked.connect(partial(self.like , 
                 (self.feed_page_elements["btn_like"+str(i)],
                 self.feed_page_elements["l_count"+str(i)],
-                feed_contents[0],feed_contents[4],feed_contents[6],"unlike")))
+                feed_contents[0],feed_contents[4],feed_contents[6],feed_contents[3],"unlike")))
             self.feed_page_elements["horizontalLayout_like"+str(i)].addWidget(self.feed_page_elements["l_count"+str(i)])
             self.feed_page_elements["spacerItem"+str(i)] = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
             self.feed_page_elements["horizontalLayout_like"+str(i)].addItem(self.feed_page_elements["spacerItem"+str(i)])
@@ -1325,8 +1274,6 @@ class Ui_MainWindow(object):
             sizePolicy.setVerticalStretch(0)
             sizePolicy.setHeightForWidth(self.feed_page_elements["feed_name"+str(i)].sizePolicy().hasHeightForWidth())
             self.feed_page_elements["feed_name"+str(i)].setSizePolicy(sizePolicy)
-            #font = QtGui.QFont()
-            #font.setFamily(_fromUtf8("Ubuntu Condensed"))
             font.setPointSize(11)
             self.feed_page_elements["feed_name"+str(i)].setFont(font)
             self.feed_page_elements["feed_name"+str(i)].setText(feed_contents[1])
@@ -1345,9 +1292,6 @@ class Ui_MainWindow(object):
             sizePolicy.setVerticalStretch(0)
             sizePolicy.setHeightForWidth(self.feed_page_elements["feed_content"+str(i)].sizePolicy().hasHeightForWidth())
             self.feed_page_elements["feed_content"+str(i)].setSizePolicy(sizePolicy)
-            font = QtGui.QFont()
-            font.setFamily(_fromUtf8("Bahnschrift SemiCondensed"))
-            font.setPointSize(13)
             self.feed_page_elements["feed_content"+str(i)].setFont(font)
             self.feed_page_elements["feed_content"+str(i)].setObjectName(_fromUtf8("feed_content"+str(i)))
             self.feed_page_elements["feed_content"+str(i)].setPixmap(QtGui.QPixmap(feed_contents[0]))
@@ -1367,6 +1311,18 @@ class Ui_MainWindow(object):
         self.change_page(second = 5)
         self.clear(self.verticalLayout_23)
         person_email,person_id,fullname = details
+        
+        self.thread_scout = scout_thread(self.user_detail['email'],person_email,person_id,fullname)
+        self.thread_scout.start()
+        self.thread_scout.signal.connect(self.display_scout)
+
+        loading_scout = self.generate_loading_icon()
+        self.verticalLayout_23.addLayout(loading_scout)
+
+    def display_scout(self,details):
+        self.clear(self.verticalLayout_23)
+        
+        images,likes,people_liked,propic,thumbnail,time_post,person_email,person_id,fullname = details
         self.horizontalLayout_13 = QtGui.QHBoxLayout()
         self.horizontalLayout_13.setObjectName(_fromUtf8("horizontalLayout_13"))
         spacerItem73 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -1378,13 +1334,7 @@ class Ui_MainWindow(object):
         self.l_propic_scout.setObjectName(_fromUtf8("l_propic_scout"))
         self.verticalLayout_16.addWidget(self.l_propic_scout)
         self.l_name_scout = QtGui.QLabel(self.scout)
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Ubuntu Condensed"))
-        font.setPointSize(15)
-        font.setBold(True)
-        font.setUnderline(True)
-        font.setWeight(75)
-        font.setKerning(False)
+        font = self.generate_font(family = "Ubuntu Condensed", point_size = 15, set_bold = True)
         self.l_name_scout.setFont(font)
         self.l_name_scout.setText(_fromUtf8(""))
         self.l_name_scout.setAlignment(QtCore.Qt.AlignCenter)
@@ -1400,7 +1350,7 @@ class Ui_MainWindow(object):
         self.line_scout.setLineWidth(2)
         self.line_scout.setObjectName(_fromUtf8("line_scout"))
         self.verticalLayout_23.insertWidget(1,self.line_scout)
-        images,likes,people_liked,propic,thumbnail,time_post = client.fetch_scout_view(self.user_detail['email'],person_email,person_id)
+        
         self.l_propic_scout.setPixmap(QtGui.QPixmap(propic))
         self.l_name_scout.setText(fullname)
         self.scout_ = [(image,like,people,time) for image,like,people,time in zip(images,likes,people_liked,time_post) ]
@@ -1419,9 +1369,7 @@ class Ui_MainWindow(object):
             self.scout_page_elements["time_stamp"+str(i)] = QtGui.QLabel(self.scrollAreaWidgetContents_4)
             self.scout_page_elements["time_stamp"+str(i)].setObjectName("time_stamp"+str(i))
             self.scout_page_elements["time_stamp"+str(i)].setText(self.get_time_difference(scout_elements[3]))
-            font = QtGui.QFont()
-            font.setFamily(_fromUtf8("Ubuntu"))
-            font.setPointSize(8)
+            font = self.generate_font(family = "Ubuntu",point_size = 8)
             self.scout_page_elements["time_stamp"+str(i)].setFont(font)
 
             sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
@@ -1440,9 +1388,7 @@ class Ui_MainWindow(object):
             self.scout_page_elements["preson_name_scout"+str(i)].setText(fullname)
             self.scout_page_elements["preson_name_scout"+str(i)].setSizePolicy(sizePolicy)
             self.scout_page_elements["preson_name_scout"+str(i)].setObjectName("preson_name_scout"+str(i))
-            font = QtGui.QFont()
-            font.setFamily(_fromUtf8("Ubuntu Condensed"))
-            font.setPointSize(11)
+            font = self.generate_font(family = "Ubuntu Condensed",point_size = 11)
             self.scout_page_elements["preson_name_scout"+str(i)].setFont(font)
             self.scout_page_elements["horizontal_layout_scout"+str(i)].addWidget(self.scout_page_elements["preson_name_scout"+str(i)])
             self.verticalLayout_23.insertLayout(2,self.scout_page_elements["horizontal_layout_scout"+str(i)])
@@ -1474,9 +1420,7 @@ class Ui_MainWindow(object):
             sizePolicy.setHorizontalStretch(0)
             sizePolicy.setVerticalStretch(0)
             sizePolicy.setHeightForWidth(self.scout_page_elements["btn_count_scout"+str(i)].sizePolicy().hasHeightForWidth())
-            font = QtGui.QFont()
-            font.setFamily(_fromUtf8("Ubuntu Condensed"))
-            font.setPointSize(13)
+            font = self.generate_font(family = "Ubuntu Condensed",point_size = 13)
             self.scout_page_elements["btn_count_scout"+str(i)].setFont(font)
             self.scout_page_elements["btn_count_scout"+str(i)].setSizePolicy(sizePolicy)
             self.scout_page_elements["btn_count_scout"+str(i)].setText(scout_elements[1])
@@ -1487,13 +1431,13 @@ class Ui_MainWindow(object):
                 self.scout_page_elements["btn_like_scout"+str(i)].setIconSize(QtCore.QSize(23,23))
                 self.scout_page_elements["btn_like_scout"+str(i)].clicked.connect(partial(self.like, (
                 self.scout_page_elements["btn_like_scout"+str(i)],self.scout_page_elements["btn_count_scout"+str(i)],
-                scout_elements[0],person_id,person_email,"unlike")))
+                scout_elements[0],person_id,person_email,scout_elements[1],"unlike")))
             else:
                 self.scout_page_elements["btn_like_scout"+str(i)].setIcon(QtGui.QIcon("default_icons/notLiked.png"))
                 self.scout_page_elements["btn_like_scout"+str(i)].setIconSize(QtCore.QSize(23,23))
                 self.scout_page_elements["btn_like_scout"+str(i)].clicked.connect(partial(self.like, (
                 self.scout_page_elements["btn_like_scout"+str(i)],self.scout_page_elements["btn_count_scout"+str(i)],
-                scout_elements[0],person_id,person_email,"like")))
+                scout_elements[0],person_id,person_email,scout_elements[1],"like")))
 
             self.scout_page_elements["horizontal_layout1"+str(i)].addWidget(self.scout_page_elements["btn_count_scout"+str(i)])
             self.scout_page_elements["spacerItem_scout"+str(i)] = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -1508,23 +1452,30 @@ class Ui_MainWindow(object):
             self.verticalLayout_23.insertWidget(6,self.scout_page_elements["line_scout"+str(i)])
 
     def like(self,details):
-        button,like_count_lable,image,p_id,email,flag = details
+        button,like_count_lable,image,p_id,email,count,flag = details
         button.clicked.disconnect()
         button.setIcon(QtGui.QIcon("default_icons/liked.png"))
         button.setIconSize(QtCore.QSize(30,30))
         image = image.split('/')[-1]
         if flag=="like":
-            like_count = client.like_unlike(image,self.user_detail["id"],self.user_detail["email"],email,'like')
             button.setIcon(QtGui.QIcon("default_icons/liked.png"))
             button.setIconSize(QtCore.QSize(23,23))
+            like_count = int(count)+1
             button.clicked.connect(partial(self.like , 
-                (button,like_count_lable,image,p_id,email,"unlike")))
+                (button,like_count_lable,image,p_id,email,like_count,"unlike")))
+            self.like_thread = threading.Thread(target = client.like_unlike, args=(image,self.user_detail["id"],self.user_detail["email"],email,'like'))
+            self.like_thread.start()
+            self.like_thread.setDaemon = True
+
         elif flag=="unlike":
-            like_count = client.like_unlike(image,self.user_detail["id"],self.user_detail["email"],email,'unlike')
             button.setIcon(QtGui.QIcon("default_icons/notLiked.png"))
             button.setIconSize(QtCore.QSize(23,23))
+            like_count = int(count)-1
             button.clicked.connect(partial(self.like , 
-                (button,like_count_lable,image,p_id,email,"like")))
+                (button,like_count_lable,image,p_id,email,like_count,"like")))
+            self.like_thread = threading.Thread(target = client.like_unlike, args=(image,self.user_detail["id"],self.user_detail["email"],email,'unlike'))
+            self.like_thread.start()
+            self.like_thread.setDaemon = True
         
         like_count_lable.setText(str(like_count))
 
@@ -1547,6 +1498,14 @@ class Ui_MainWindow(object):
         horizontal_layout.addWidget(loading_icon)
         horizontal_layout.addItem(spacer2)
         return horizontal_layout
+
+    def generate_font(self,family=None , point_size=None ,set_bold = False, kerning = False):
+        font = QtGui.QFont()
+        font.setFamily(family)
+        font.setPointSize(point_size)
+        font.setBold(set_bold)
+        font.setKerning(kerning)
+        return font
 
     def generate_flag(self,flag_location=None,flag_text = None):
         font = QtGui.QFont()
