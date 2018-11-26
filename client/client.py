@@ -152,41 +152,41 @@ def change_propic(propic,email):
         propic = PilImage.open(propic)
         if ".jpg" not in propic_var and ".jpeg" not in propic_var:
             return 0
+    except:
+        return None
 
-        print("creating socket")
-        s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        print('socket created')
+    print("creating socket")
+    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    print('socket created')
 
-        print("connection socket")
-        s.connect((ip,port))
-        print("connected")
+    print("connection socket")
+    s.connect((ip,port))
+    print("connected")
 
-        print('sending flag')
-        s.sendall('propic'.encode())
-        print(s.recv(4096).decode('utf-8'))
+    print('sending flag')
+    s.sendall('propic'.encode())
+    print(s.recv(4096).decode('utf-8'))
 
 
-        details = [propic,email]
-        print('sending details')
-        with open("image.pickle",'wb') as f:
+    details = [propic,email]
+    print('sending details')
+    with open("image.pickle",'wb') as f:
             pickle.dump(details,f)
 
-        with open("image.pickle",'rb') as f:
+    with open("image.pickle",'rb') as f:
+        data = f.read(4096)
+        while data:
+            s.send(data)
             data = f.read(4096)
-            while data:
-                s.send(data)
-                data = f.read(4096)
-            s.send(b'no more data')
+        s.send(b'no more data')
 
-        print(s.recv(4096).decode('utf-8'))
-        propic.thumbnail((150,150))
-        propic.save(f"account_user{email}/profile_pic_user{email}/propic.jpg")
-        propic.thumbnail((60,60))
-        propic.save(f"account_user{email}/thumbnail_user{email}/thumbnail.jpg")
-        return 1
+    print(s.recv(4096).decode('utf-8'))
+    propic.thumbnail((150,150))
+    propic.save(f"account_user{email}/profile_pic_user{email}/propic.jpg")
+    propic.thumbnail((60,60))
+    propic.save(f"account_user{email}/thumbnail_user{email}/thumbnail.jpg")
+    return 1
     
-    except:
-        return 0
         
 
 def fetch_feed(email):
@@ -293,7 +293,7 @@ def upload_feed(image,email):
         if ".jpg" not in image_var and ".jpeg" not in image_var:
             return 0
     except:
-        return 0
+        return None
 
     port = 4000
     global ip
@@ -322,7 +322,7 @@ def upload_feed(image,email):
 
     os.remove('image.pickle')
     s.close()
-    time.sleep(.1)
+    time.sleep(.5)
     return
 
 def like_unlike(image,p_id,user_email,email,flag):
@@ -342,11 +342,7 @@ def like_unlike(image,p_id,user_email,email,flag):
     s.sendall(pickle.dumps(details))
     print(s.recv(4096).decode('utf-8'))
 
-    print('recieving like count')
-    like_count = pickle.loads(s.recv(4096))
-
     s.close()
-    return like_count
 
 def search(searched_person,email):
 

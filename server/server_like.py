@@ -27,7 +27,6 @@ def remove_like(image,p_id,user_email,email):
         f.truncate(0)
         for people in liked_people:
             f.write(people+"\n")
-    return likes-1    
 
 
 def main():
@@ -52,13 +51,10 @@ def main():
     	c.sendall('received by server'.encode())
 
     	if details[-1] == "like":
-    		like_count = add_like(details[0],details[1],details[2],details[3])
+    		add_like(details[0],details[1],details[2],details[3])
 
     	elif details[-1] == "unlike":
-    		like_count = remove_like(details[0],details[1],details[2],details[3])
-
-    	print("sending like count")
-    	c.sendall(pickle.dumps(like_count))
+    		remove_like(details[0],details[1],details[2],details[3])
 
     	c.close()
 
