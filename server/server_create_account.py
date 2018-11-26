@@ -25,7 +25,7 @@ def create_account(first,last,email,password):
     conn_create = sqlite3.connect("copro.db")
     cursor_create  = conn_create.cursor()
 
-    first,last,email,password = first.strip(),last.strip(),email.strip(),password.strip()
+    first,last,email,password = first.strip().upper(),last.strip().upper(),email.strip(),password.strip()
     with conn_create:  
         cursor_create.execute("""SELECT * FROM accounts
                      WHERE email = (:email)""",{"email":email})
