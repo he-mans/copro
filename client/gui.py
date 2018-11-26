@@ -21,6 +21,40 @@ except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
 
+class create_account_thread(QtCore.QThread):
+    signal = QtCore.pyqtSignal(int)
+    def __init__(self,first,last,email,password):
+        QtCore.QThread.__init__(self)
+        self.first = first
+        self.last = last
+        self.email = email
+        self.password = password
+
+    def run(self):
+        try:
+            status = client.create(self.first,self.last,self.email,self.password)
+            self.signal.emit(status)
+        except ConnectionRefusedError:
+            self.signal.emit(-1)
+
+class login_thread(QtCore.QThread):
+    signal = QtCore.pyqtSignal(dict)
+    signal_error = QtCore.pyqtSignal(int)
+    def __init__(self,email,password):
+        QtCore.QThread.__init__(self)
+        self.email = email
+        self.password = password
+
+    def run(self):
+        try:
+            status = client.login(self.email,self.password)
+            if status == 1 or status == 0:
+                self.signal_error.emit(status)
+            else:
+                self.signal.emit(status)
+        except ConnectionRefusedError:
+            self.signal_error.emit(-1)
+
 
 class feed_thread(QtCore.QThread):
     signal = QtCore.pyqtSignal(list)
@@ -112,14 +146,17 @@ class Ui_MainWindow(object):
         self.gridLayout = QtGui.QGridLayout(self.login_page)
         self.gridLayout.setContentsMargins(0,0,0,0)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        spacerItem = QtGui.QSpacerItem(358, 156, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout.addItem(spacerItem, 0, 0, 1, 5)
-        spacerItem1 = QtGui.QSpacerItem(28, 20, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem1, 1, 0, 1, 1)
+        
+        self.horizontalLayout = QtGui.QHBoxLayout()
+        spacerItem_login2 = QtGui.QSpacerItem(40,20,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        self.horizontalLayout.addItem(spacerItem_login2)
+
         self.verticalLayout = QtGui.QVBoxLayout()
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        spacerItem_0 = QtGui.QSpacerItem(300,40,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem_0)
         self.le_email = QtGui.QLineEdit(self.login_page)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.le_email.sizePolicy().hasHeightForWidth())
@@ -127,13 +164,10 @@ class Ui_MainWindow(object):
         font = self.generate_font(family = "Comic Sans MS", point_size = 10)
         self.le_email.setFont(font)
         self.le_email.setStyleSheet(_fromUtf8("background-color: rgb(222, 209, 193);"))
-        self.le_email.setText(_fromUtf8(""))
-        self.le_email.setEchoMode(QtGui.QLineEdit.Normal)
-        self.le_email.setCursorMoveStyle(QtCore.Qt.VisualMoveStyle)
         self.le_email.setObjectName(_fromUtf8("le_email"))
         self.verticalLayout.addWidget(self.le_email)
         self.le_password = QtGui.QLineEdit(self.login_page)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.le_password.sizePolicy().hasHeightForWidth())
@@ -141,31 +175,18 @@ class Ui_MainWindow(object):
         self.le_password.setFont(font)
         self.le_password.setStyleSheet(_fromUtf8("background-color: rgb(222, 209, 193);"))
         self.le_password.setEchoMode(QtGui.QLineEdit.Password)
-        self.le_password.setCursorMoveStyle(QtCore.Qt.VisualMoveStyle)
         self.le_password.setObjectName(_fromUtf8("le_password"))
         self.verticalLayout.addWidget(self.le_password)
-        self.gridLayout.addLayout(self.verticalLayout, 1, 1, 2, 3)
-        spacerItem2 = QtGui.QSpacerItem(28, 20, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem2, 1, 4, 1, 1)
-        spacerItem3 = QtGui.QSpacerItem(28, 20, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem3, 2, 0, 1, 1)
-        spacerItem4 = QtGui.QSpacerItem(28, 20, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem4, 2, 4, 1, 1)
-        spacerItem5 = QtGui.QSpacerItem(385, 17, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem5, 3, 0, 1, 5)
-        spacerItem6 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem6, 4, 0, 1, 1)
         self.btn_login = QtGui.QPushButton(self.login_page)
         font = self.generate_font(family = "Ubuntu Condensed", point_size = 10, set_bold = True)
         self.btn_login.setFont(font)
         self.btn_login.setStyleSheet(_fromUtf8("background-color: rgb(69, 142, 255);"))
         self.btn_login.setAutoRepeat(False)
         self.btn_login.setObjectName(_fromUtf8("btn_login"))
-        self.gridLayout.addWidget(self.btn_login, 4, 1, 1, 3)
-        spacerItem7 = QtGui.QSpacerItem(28, 20, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem7, 4, 4, 1, 1)
-        spacerItem8 = QtGui.QSpacerItem(28, 20, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem8, 5, 0, 1, 1)
+        self.verticalLayout.addWidget(self.btn_login)
+        
+        self.horizontalLayout_2_login = QtGui.QHBoxLayout()
+        #self.horizontalLayout_2_login.setContentsMargins(0, 10, -1, -1)
         self.label = QtGui.QLabel(self.login_page)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -175,7 +196,8 @@ class Ui_MainWindow(object):
         font = self.generate_font(family = "Ubuntu", point_size = 9)
         self.label.setFont(font)
         self.label.setObjectName(_fromUtf8("label"))
-        self.gridLayout.addWidget(self.label, 5, 1, 1, 1)
+        
+        self.horizontalLayout_2_login.addWidget(self.label)
         self.btn_sign_up = QtGui.QPushButton(self.login_page)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -185,11 +207,21 @@ class Ui_MainWindow(object):
         self.btn_sign_up.setFont(font)
         self.btn_sign_up.setFlat(True)
         self.btn_sign_up.setObjectName(_fromUtf8("btn_sign_up"))
-        self.gridLayout.addWidget(self.btn_sign_up, 5, 2, 1, 1)
-        spacerItem9 = QtGui.QSpacerItem(137, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem9, 5, 3, 1, 2)
-        spacerItem10 = QtGui.QSpacerItem(358, 107, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.MinimumExpanding)
-        self.gridLayout.addItem(spacerItem10, 6, 0, 1, 5)
+        self.horizontalLayout_2_login.addWidget(self.btn_sign_up)
+        spacerItem_login1 = QtGui.QSpacerItem(40,20,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_2_login.addItem(spacerItem_login1)
+
+        self.verticalLayout.addLayout(self.horizontalLayout_2_login)
+        spacerItem_4 = QtGui.QSpacerItem(300,40,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem_4)
+
+        
+        self.horizontalLayout.addLayout(self.verticalLayout)
+        
+        spacerItem_login3 = QtGui.QSpacerItem(40,20,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        self.horizontalLayout.addItem(spacerItem_login3)
+        self.gridLayout.addLayout(self.horizontalLayout,9,1,1,1)
+        
         self.stackedWidget.addWidget(self.login_page)
 #---------------------------------------------------------------------------------------------------------------------------#        
 #---------------------------------------------------------------------------------------------------------------------------#
@@ -807,6 +839,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+
     def variable_assets(self):
         self.feed = []
         self.page_elements = {}
@@ -858,8 +891,8 @@ class Ui_MainWindow(object):
     def clicked(self):
         self.btn_sign_up.clicked.connect(lambda:self.change_page(first = 1))
         self.btn_back_su.clicked.connect(lambda:self.change_page(first = 0))
-        self.btn_sign_up_su.clicked.connect(lambda:self.create_account(first = 0))
-        self.btn_login.clicked.connect(lambda:self.login(first=2,second=0))
+        self.btn_sign_up_su.clicked.connect(lambda:self.create_account())
+        self.btn_login.clicked.connect(lambda:self.login())
         self.btn_feed.clicked.connect(lambda:self.feed_page())
         self.btn_find_people.clicked.connect(lambda:self.change_to_search_page())
         self.btn_frnd_req.clicked.connect(lambda:self.fetch_req())
@@ -899,30 +932,67 @@ class Ui_MainWindow(object):
         self.le_new_name.clear()
         self.change_page(second = 3)
 
-    def create_account(self,first = None):
-        status = client.create(self.le_first_su.text(),self.le_last_su.text(),
-                                     self.le_email_su.text(),self.le_pass_su.text())
-        if status == 0:
+    def create_account(self):
+        self.loading_icon_su = self.generate_loading_icon("default_icons/loading_small.gif")
+        self.verticalLayout_2.addLayout(self.loading_icon_su)
+
+        self.btn_back_su.setEnabled(False)
+        self.btn_sign_up_su.setEnabled(False)
+
+        self.thread_create_account = create_account_thread(self.le_first_su.text(),
+                                                            self.le_last_su.text(),
+                                                            self.le_email_su.text(),
+                                                            self.le_pass_su.text())
+        self.thread_create_account.start()
+        self.thread_create_account.signal.connect(self.create_account_message)
+
+    def create_account_message(self,status):
+        
+        self.btn_back_su.setEnabled(True)
+        self.btn_sign_up_su.setEnabled(True)
+        if status == -1:
+            self.message_box("sign up","connection refused by server")
+        elif status == 0:
             self.message_box("Sign up","Email already exist")    
-        else:
+        elif status ==1 :
             self.message_box("Sign up","Sign up sucessful")
             self.le_first_su.clear()
             self.le_last_su.clear()
             self.le_email_su.clear()
             self.le_pass_su.clear()
-            self.change_page(first = first)
+            self.change_page(first = 0)
+        self.clear(self.loading_icon_su)
 
-    def login(self,first = None,second = None):
-        self.user_detail = client.login(self.le_email.text(),self.le_password.text())
+    def login(self):
+        
+        self.btn_sign_up.setEnabled(False)
+        self.btn_login.setEnabled(False)
+        
+        self.loading_icon_login = self.generate_loading_icon("default_icons/loading_small.gif")
+        self.verticalLayout.insertLayout(4,self.loading_icon_login)
+
+        self.thread_login = login_thread(self.le_email.text(),self.le_password.text())
+        self.thread_login.start()
+        self.thread_login.signal.connect(self.login_message)
+        self.thread_login.signal_error.connect(self.login_message)
+
+    def login_message(self,user_detail):
+        self.user_detail = user_detail
+        self.btn_sign_up.setEnabled(True)
+        self.btn_login.setEnabled(True)
+        
         if self.user_detail == 0:
             self.message_box("Login" , "Wrong email")
         elif self.user_detail == 1:
             self.message_box("Login","Wrong email or password")
+        elif self.user_detail == -1:
+            self.message_box("Login","Connection refused by server")
         else:
             self.le_email.clear()
             self.le_password.clear()
             self.l_propic_as.setPixmap(QtGui.QPixmap(self.user_detail["propic"]))
             self.feed_page()
+        self.clear(self.loading_icon_login)
 
     def post_image(self):
         image = QtGui.QFileDialog.getOpenFileName()
@@ -992,7 +1062,7 @@ class Ui_MainWindow(object):
         self.thread_search.signal_error.connect(self.search_page)
 
         self.clear(self.verticalLayout_11)
-        loading = self.generate_loading_icon()
+        loading = self.generate_loading_icon("default_icons/loading.gif")
         self.verticalLayout_11.addLayout(loading)
 
     def search_page(self,details):
@@ -1094,7 +1164,7 @@ class Ui_MainWindow(object):
             self.thread_friend = friend_thread(self.user_detail["email"])
             self.thread_friend.start()
 
-            loading = self.generate_loading_icon()
+            loading = self.generate_loading_icon("default_icons/loading.gif")
             self.clear(self.verticalLayout_12)
             self.verticalLayout_12.addLayout(loading)
             
@@ -1219,7 +1289,7 @@ class Ui_MainWindow(object):
         self.change_page(first = 2,second = 0)
         self.clear(self.verticalLayout_22)
         
-        loading = self.generate_loading_icon()
+        loading = self.generate_loading_icon("default_icons/loading.gif")
         self.verticalLayout_22.addLayout(loading)
         
 
@@ -1352,7 +1422,7 @@ class Ui_MainWindow(object):
         self.thread_scout.signal.connect(self.display_scout)
         self.thread_scout.signal_error.connect(self.display_scout)
 
-        loading_scout = self.generate_loading_icon()
+        loading_scout = self.generate_loading_icon("default_icons/loading.gif")
         self.verticalLayout_23.addLayout(loading_scout)
 
     def display_scout(self,details):
@@ -1529,14 +1599,14 @@ class Ui_MainWindow(object):
         msg_box.setStandardButtons(QtGui.QMessageBox.Ok)
         msg_box.exec_()
 
-    def generate_loading_icon(self):
+    def generate_loading_icon(self,icon_location):
         loading_icon = QtGui.QLabel()
-        loading = QtGui.QMovie('default_icons/loading.gif')
+        loading = QtGui.QMovie(icon_location)
         loading_icon.setMovie(loading)
         loading.start()
         horizontal_layout = QtGui.QHBoxLayout()
-        spacer = QtGui.QSpacerItem(15,15,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-        spacer2 = QtGui.QSpacerItem(15,15,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        spacer = QtGui.QSpacerItem(15,8,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        spacer2 = QtGui.QSpacerItem(15,8,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         horizontal_layout.addItem(spacer)
         horizontal_layout.addWidget(loading_icon)
         horizontal_layout.addItem(spacer2)
