@@ -25,13 +25,17 @@ def main():
         c,add = s.accept()
         print("client accepted")
 
+        add_str = str(add)
+        add_str = add_str.replace("(","")
+        add_str = add_str.replace(")","")
+
         print('receiving email')
         user_email = c.recv(4096).decode('utf-8')
         c.sendall("email received by server".encode())
         print("email received")
 
         print('receiving image')
-        with open(f'image_upload_feed_user.pickle_user_{add}','wb') as f:
+        with open(f'image_upload_feed_user.pickle_user_{add_str}','wb') as f:
             data = c.recv(4096)
             while data:
                 if data.endswith(b'no more data'):
@@ -44,7 +48,7 @@ def main():
 
         c.close()
     
-        with open(f'image_upload_feed_user.pickle_user_{add}','rb') as f:
+        with open(f'image_upload_feed_user.pickle_user_{add_str}','rb') as f:
             image = pickle.load(f)
 
         conn_upload_feed = sqlite3.connect('copro.db')
@@ -57,7 +61,7 @@ def main():
                         })
             user_id,friend_list = cursor_upload.fetchone()
             friend_list = friend_list.split(" ")
-            image.thumbnail((480,480))
+            image.thumbnail((460,460))
             upload_time = str(datetime.datetime.now())
             upload_time=upload_time.replace(":","$")
             image.save(f"account_user{user_email}/{upload_time}_image_account-{user_id}.jpg")
@@ -77,7 +81,7 @@ def main():
                 friend = cursor_upload.fetchone()[0]
                 image.save(f"account_user{friend}/feed_user{friend}/{upload_time}_image_account-{user_id}.jpg")
 
-        os.remove(f'image_upload_feed_user.pickle_user_{add}')
+        os.remove(f'image_upload_feed_user.pickle_user_{add_str}')
         
     s.close()
 
