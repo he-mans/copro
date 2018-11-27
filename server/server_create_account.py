@@ -3,19 +3,20 @@ import os
 from PIL import Image as PilImage
 import pickle
 import sqlite3
-
+import traceback
 
 
 class account:
     
-    def __init__(self, first, last , email, password):
+    def __init__(self, first, last , email, password,user_id):
         self.first = first
         self.last = last
         self.email = email
         self.password = password
-        self.profile_pic = f"account_user{self.email}/profile_pic_user{self.email}/propic.jpg"
-        self.thumbnail = f"account_user{self.email}/thumbnail_user{self.email}/thumbnail.jpg"
-        self.feed_thumbnail = f"account_user{self.email}/thumbnail_user{self.email}/feed_thumbnail.jpg"
+        self.id = user_id
+        self.profile_pic = f"account_user{self.id}/profile_pic_user{self.id}/propic.jpg"
+        self.thumbnail = f"account_user{self.id}/thumbnail_user{self.id}/thumbnail.jpg"
+        self.feed_thumbnail = f"account_user{self.id}/thumbnail_user{self.id}/feed_thumbnail.jpg"
         self.friend_req = ""
         self.friend_list = ""
         self.sent = ""
@@ -32,24 +33,24 @@ def create_account(first,last,email,password):
         if cursor_create.fetchone() is not None:
             return 0
         else:
-            member = account(first,last,email,password)
             with open("user count.txt","r") as f:
                 current_users = int(f.read())
+            member = account(first,last,email,password,current_users)
             with open("user count.txt","w") as f:    
                 f.truncate(0)
                 f.write(str(current_users+1))
-            if not os.path.exists(f"account_user{email}"):
-                os.makedirs(f"account_user{email}/feed_user{email}")
-                os.chdir(f"account_user{email}")
-                os.mkdir(f"profile_pic_user{email}")
-                os.mkdir(f"thumbnail_user{email}")
+            if not os.path.exists(f"account_user{current_users}"):
+                os.makedirs(f"account_user{current_users}/feed_user{current_users}")
+                os.chdir(f"account_user{current_users}")
+                os.mkdir(f"profile_pic_user{current_users}")
+                os.mkdir(f"thumbnail_user{current_users}")
                 os.chdir("..")
             image = PilImage.open("default_icons/default_propic.jpg")
-            image.save(f"account_user{email}/profile_pic_user{email}/propic.jpg")
+            image.save(f"account_user{current_users}/profile_pic_user{current_users}/propic.jpg")
             image = PilImage.open("default_icons/default_thumbnail.jpg")
-            image.save(f"account_user{email}/thumbnail_user{email}/thumbnail.jpg")
+            image.save(f"account_user{current_users}/thumbnail_user{current_users}/thumbnail.jpg")
             image = PilImage.open("default_icons/default_feed_thumbnail.jpg")
-            image.save(f"account_user{email}/thumbnail_user{email}/feed_thumbnail.jpg")
+            image.save(f"account_user{current_users}/thumbnail_user{current_users}/feed_thumbnail.jpg")
             
             cursor_create.execute("""INSERT INTO accounts
                         VALUES(:id,:first, :last, :email,:password,:propic,
@@ -83,21 +84,27 @@ def main():
     print("server started listening")
 
     while True:
-        c,add = s.accept()
-        print("client accepted")
-        
-        print("receving account details")
-        account_details = pickle.loads(c.recv(4096))
-        print("details received")
+        try:
+            c,add = s.accept()
+            print("client accepted")
+            
+            print("receving account details")
+            account_details = pickle.loads(c.recv(4096))
+            print("details received")
 
-        print("creating account")
-        return_status = create_account(account_details[0],account_details[1],account_details[2],account_details[3])
+            print("creating account")
+            return_status = create_account(account_details[0],account_details[1],account_details[2],account_details[3])
 
-        print("sending return status of server")
-        c.sendall(pickle.dumps(return_status))
-        print("sent")
+            print("sending return status of server")
+            c.sendall(pickle.dumps(return_status))
+            print("sent")
+        except Exception as e:
+            print('server_create_account raised exception :',end = ' ')
+            print(e)
+            print('traceback for above create_account error')
+            traceback.print_exc()
         c.close()
-
+    
     s.close()
 
 if __name__ == '__main__':

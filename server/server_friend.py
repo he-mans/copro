@@ -3,17 +3,17 @@ import pickle
 import sqlite3
 from PIL import Image as PilImage
 import os
+import traceback
 
 
-
-def fetch_req(user_email):
+def fetch_req(user_id):
     conn_freind = sqlite3.connect('copro.db')
     cursor_friend = conn_freind.cursor()
 
     with conn_freind:
         cursor_friend.execute("""SELECT friend_req FROM accounts
-                        WHERE email = (:email)""",{
-                        "email" : user_email
+                        WHERE id = (:id)""",{
+                        "id" : user_id
                         })
         req_list = cursor_friend.fetchone()[0]
         req_list = req_list.split(repr(" "))
@@ -104,61 +104,67 @@ def main():
     print('socket started listening')
 
     while True:
-        c,add = s.accept()  
-        print('connected to client')
+        try:
+            c,add = s.accept()  
+            print('connected to client')
 
-        flag = c.recv(4096).decode('utf-8')
-        
-        if flag == "fetch":
-            c.send(b'flag received by server')
-            print('received')
+            flag = c.recv(4096).decode('utf-8')
+            
+            if flag == "fetch":
+                c.send(b'flag received by server')
+                print('received')
 
-            print('receiving user email')
-            user_email = c.recv(4096).decode('utf-8')
-            c.send('email received by server'.encode())
-            print('received')
+                print('receiving user id')
+                user_id = c.recv(4096).decode('utf-8')
+                c.send('id received by server'.encode())
+                print('received')
 
-            req_list = fetch_req(user_email)
+                req_list = fetch_req(user_id)
 
+                thumbnails = [PilImage.open(requests.split(' ')[3]) for requests in req_list if requests!='']
+                with open('images_friend.pickle','wb') as f:
+                    pickle.dump(thumbnails,f)
 
-            thumbnails = [PilImage.open(requests.split(' ')[3]) for requests in req_list if requests!='']
-            with open('images_friend.pickle','wb') as f:
-                pickle.dump(thumbnails,f)
-
-            print('sending thumbnails')
-            with open('images_friend.pickle','rb') as f:
-                data = f.read(4096)
-                while data:
-                    c.sendall(data)
+                print('sending thumbnails')
+                with open('images_friend.pickle','rb') as f:
                     data = f.read(4096)
-                c.sendall(b'no more data')
-            print(c.recv(4096).decode('utf-8'))
+                    while data:
+                        c.sendall(data)
+                        data = f.read(4096)
+                    c.sendall(b'no more data')
+                print(c.recv(4096).decode('utf-8'))
 
-            os.remove('images_friend.pickle')
-            print("sending req details")
-            c.sendall(pickle.dumps(req_list))
-            print('sent')
+                os.remove('images_friend.pickle')
+                print("sending req details")
+                c.sendall(pickle.dumps(req_list))
+                print('sent')
 
-        elif flag == 'reject':
-            c.send(b'flag received by server')
-            print('received')
+            elif flag == 'reject':
+                c.send(b'flag received by server')
+                print('received')
 
-            print('receiving details')
-            user_id,new_req_list,requester_id = pickle.loads(c.recv(4096))
-            print(requester_id)
-            reject(user_id,new_req_list,requester_id)
+                print('receiving details')
+                user_id,new_req_list,requester_id = pickle.loads(c.recv(4096))
+                print(requester_id)
+                reject(user_id,new_req_list,requester_id)
 
-        elif flag == 'accept':
-            c.send(b'flag received by server')
-            print('received')
+            elif flag == 'accept':
+                c.send(b'flag received by server')
+                print('received')
 
-            print('receiving details')
-            requester_id,new_req_list,user_id = pickle.loads(c.recv(4096))
+                print('receiving details')
+                requester_id,new_req_list,user_id = pickle.loads(c.recv(4096))
 
-            accept(requester_id,new_req_list,user_id)
+                accept(requester_id,new_req_list,user_id)
 
-
+        except Exception as e:
+            print('server_friend raised exception :',end = ' ')
+            print(e)
+            print('traceback for above server_friend error')
+            traceback.print_exc()
+        
         c.close()
+    
     s.close()
 
 if __name__ == '__main__':

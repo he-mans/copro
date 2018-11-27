@@ -12,76 +12,28 @@ import server_scout
 
 
 def start_server_feed():
-    try:
-        server_feed.main()
-    except Exception as e:
-        print('server_feed raised exception :',end = ' ')
-        print(e)
-        print('traceback for above feed error')
-        traceback.print_exc()
-
+    server_feed.main()
+    
 def start_server_login():
-    try:
-        server_login.main()
-    except Exception as e:
-        print('server_login raised exception :',end = ' ')
-        print(e)
-        print('traceback for above login error')
-        traceback.print_exc()
+    server_login.main()
 
 def start_server_create_account():
-    try:    
-        server_create_account.main()
-    except Exception as e:
-        print('server_create_account raised exception :',end = ' ')
-        print(e)
-        print('traceback for above create_account error')
-        traceback.print_exc()
-
+    server_create_account.main()
+    
 def start_server_search():
-    try:
-        server_search.main()
-    except Exception as e:
-        print('server_search raised exception :',end = ' ')
-        print(e)
-        print('traceback for above search error')
-        traceback.print_exc()
+    server_search.main()
 
 def start_server_friend():
-    try:
-        server_friend.main()
-    except Exception as e:
-        print('server_friend raised exception :',end = ' ')
-        print(e)
-        print('traceback for above server_friend error')
-        traceback.print_exc()
-
+   server_friend.main()
+    
 def start_server_change_settings():
-    try:
-        server_change_settings.main()
-    except Exception as e:
-        print('server_change_settings raised exception :',end = ' ')
-        print(e)
-        print('traceback for above change_settings error')
-        traceback.print_exc()
+    server_change_settings.main()
 
 def start_server_like():
-    try:
-        server_like.main()
-    except Exception as e:
-        print('server_like raised exception :',end = ' ')
-        print(e)
-        print('traceback for above like error')
-        traceback.print_exc()
+    server_like.main()
 
 def start_server_scout():
-    try:
-        server_scout.main()
-    except Exception as e:
-        print('server_scout raised exception :',end = ' ')
-        print(e)
-        print('traceback for above scout error')
-        traceback.print_exc()
+    server_scout.main()
 
 if __name__ == '__main__':
     threads = []
