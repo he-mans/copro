@@ -59,16 +59,16 @@ class login_thread(QtCore.QThread):
 class feed_thread(QtCore.QThread):
     signal = QtCore.pyqtSignal(list)
     signal_error = QtCore.pyqtSignal(str)
-    def __init__(self,email,parent = None):
+    def __init__(self,user_id,parent = None):
         QtCore.QThread.__init__(self,parent)
-        self.email = email
+        self.user_id = user_id
 
     def run(self):
         self.running = True
         try:
-            images,thumbnails,full_names,likes,ids,people_liked,emails,times= client.fetch_feed(self.email)
-            feed = [(image,full_name,thumbnail,like,p_id,peoples,email,time) for image,full_name,thumbnail,like,p_id,peoples,email,time in zip(
-                            images,full_names,thumbnails,likes,ids,people_liked,emails,times)]
+            images,thumbnails,full_names,likes,ids,people_liked,times= client.fetch_feed(self.user_id)
+            feed = [(image,full_name,thumbnail,like,p_id,peoples,time) for image,full_name,thumbnail,like,p_id,peoples,time in zip(
+                            images,full_names,thumbnails,likes,ids,people_liked,times)]
             self.signal.emit(feed)
         except ConnectionRefusedError:
             self.signal_error.emit("Connection refused by server")
@@ -76,15 +76,15 @@ class feed_thread(QtCore.QThread):
 class search_thread(QtCore.QThread):
     signal = QtCore.pyqtSignal(list)
     signal_error = QtCore.pyqtSignal(str)
-    def __init__(self,searched,email,parent=None):
+    def __init__(self,searched,user_id,parent=None):
         QtCore.QThread.__init__(self,parent)
-        self.email = email
+        self.user_id = user_id
         self.searched = searched
     
     def run(self):
         try:
             self.running = True
-            search_result,friend_list,sent = client.search(self.searched,self.email)
+            search_result,friend_list,sent = client.search(self.searched,self.user_id)
             self.signal.emit([search_result,friend_list,sent])
         except ConnectionRefusedError:
             self.signal_error.emit("Connection refused by server")
@@ -92,14 +92,14 @@ class search_thread(QtCore.QThread):
 class friend_thread(QtCore.QThread):
     signal = QtCore.pyqtSignal(list)
     signal_error = QtCore.pyqtSignal(str)
-    def __init__(self,email,parent=None):
+    def __init__(self,user_id,parent=None):
         QtCore.QThread.__init__(self,parent)
-        self.email = email
+        self.user_id = user_id
 
     def run(self):
         try:
             self.running = True
-            req_list = client.fetch_req(self.email)
+            req_list = client.fetch_req(self.user_id)
             self.signal.emit(req_list)
         except ConnectionRefusedError as e:
             self.signal_error.emit("Connection refused by server")
@@ -107,18 +107,17 @@ class friend_thread(QtCore.QThread):
 class scout_thread(QtCore.QThread):
     signal = QtCore.pyqtSignal(tuple)
     signal_error = QtCore.pyqtSignal(str)
-    def __init__(self,email,person_email,person_id,fullname,parent = None):
+    def __init__(self,user_id,person_id,fullname,parent = None):
         QtCore.QThread.__init__(self,parent)
-        self.user_email = email
+        self.user_id = user_id
         self.person_id = person_id
-        self.person_email = person_email
         self.fullname = fullname
 
     def run(self):
         try:
             self.running = True
-            details = client.fetch_scout_view(self.user_email,self.person_email,self.person_id)
-            details+=(self.person_email,self.person_id,self.fullname)
+            details = client.fetch_scout_view(self.user_id,self.person_id)
+            details+=(self.person_id,self.fullname)
             self.signal.emit(details)
         except ConnectionRefusedError:
             self.signal_error.emit("Connection refused by server")
@@ -359,7 +358,7 @@ class Ui_MainWindow(object):
         self.btn_feed = QtGui.QPushButton(self.home_page)
         self.btn_feed.setText(_fromUtf8(""))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/feed/feed.png")), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon.addPixmap(QtGui.QPixmap("default_icons/feed.png"))
         self.btn_feed.setIcon(icon)
         self.btn_feed.setIconSize(QtCore.QSize(35, 35))
         self.btn_feed.setFlat(True)
@@ -910,7 +909,7 @@ class Ui_MainWindow(object):
         self.btn_post.clicked.connect(lambda:self.post_image())      
 
     def logout(self):
-        client.logout(self.user_detail["email"])
+        client.logout(self.user_detail["id"])
         self.user_detail = {}
         self.search_result = []
         self.sent = []
@@ -996,7 +995,7 @@ class Ui_MainWindow(object):
 
     def post_image(self):
         image = QtGui.QFileDialog.getOpenFileName()
-        return_value = client.upload_feed(image,self.user_detail["email"])
+        return_value = client.upload_feed(image,self.user_detail["id"])
         if return_value == 0:
             self.message_box("upload feed","only jpg file format is supported")
         self.feed_page()
@@ -1017,7 +1016,7 @@ class Ui_MainWindow(object):
             self.flag = 2
         elif flag ==3:    
             self.le_new_name.setPlaceholderText("enter new password")
-            self.label_3.setText(self.user_detail["password"])
+            self.label_3.setText("enter new password")
             self.flag = 3
         self.change_page(second = 4)
     
@@ -1032,7 +1031,7 @@ class Ui_MainWindow(object):
 
     def change_propic(self):
         propic = QtGui.QFileDialog.getOpenFileName()
-        rescaled_propic = client.change_propic(propic,self.user_detail["email"])
+        rescaled_propic = client.change_propic(propic,self.user_detail["id"])
         if rescaled_propic == 0:
             self.message_box("account settings","image format not supported")
         elif rescaled_propic is 1:
@@ -1056,7 +1055,7 @@ class Ui_MainWindow(object):
             self.verticalLayout_11.addLayout(flag)
 
     def search(self):
-        self.thread_search = search_thread(self.le_search.text(),self.user_detail["email"])
+        self.thread_search = search_thread(self.le_search.text(),self.user_detail["id"])
         self.thread_search.start()
         self.thread_search.signal.connect(self.search_page)
         self.thread_search.signal_error.connect(self.search_page)
@@ -1067,7 +1066,7 @@ class Ui_MainWindow(object):
 
     def search_page(self,details):
         self.clear(self.verticalLayout_11)
-        if details == "Connection refused by server":
+        if type(details) == str:
             flag_location = "default_icons/connection_refused.png"
             flag = self.generate_flag(flag_location)
             self.verticalLayout_11.addLayout(flag)
@@ -1107,7 +1106,7 @@ class Ui_MainWindow(object):
             sizePolicy.setHeightForWidth( self.page_elements["ln_fp"+str(i)].sizePolicy().hasHeightForWidth())
             self.page_elements["ln_fp"+str(i)].setSizePolicy(sizePolicy)
             font = self.generate_font(family = "Ubuntu Condensed",point_size = 12)
-            #font.setKerning(True)
+            
             self.page_elements["ln_fp"+str(i)].setFont(font)
             self.page_elements["verticalLayout_fp"+str(i)].addWidget( self.page_elements["ln_fp"+str(i)])
             self.page_elements["btn_fr_fp"+str(i)].setStyleSheet(_fromUtf8("Text-align:left"))
@@ -1139,7 +1138,7 @@ class Ui_MainWindow(object):
 
             fullname = result[0]+" "+result[1]
             self.page_elements["ln_fp"+str(i)].setText(result[0]+" "+result[1])
-            self.page_elements["ln_fp"+str(i)].clicked.connect(partial(self.scout_page,(result[4],result[2],fullname)))
+            self.page_elements["ln_fp"+str(i)].clicked.connect(partial(self.scout_page,(result[2],fullname)))
             self.page_elements["li_fp"+str(i)].setPixmap(QtGui.QPixmap(result[3]))
             self.page_elements["line_search"+str(i)] = QtGui.QFrame(self.scrollAreaWidgetContents)
             self.page_elements["line_search"+str(i)].setFrameShape(QtGui.QFrame.HLine)
@@ -1154,14 +1153,14 @@ class Ui_MainWindow(object):
     def send_frnd_req(self,button,result):
         button.setText("Friend Request sent")
         button.setEnabled(False)
-        self.send_req = threading.Thread(target = client.send_frnd_req,args = (self.user_detail["email"],result[2]))
+        self.send_req = threading.Thread(target = client.send_frnd_req,args = (self.user_detail["id"],result[2]))
         self.send_req.start()
         self.send_req.setDaemon = True
 
     def fetch_req(self):
             self.change_page(second = 2)
             
-            self.thread_friend = friend_thread(self.user_detail["email"])
+            self.thread_friend = friend_thread(self.user_detail["id"])
             self.thread_friend.start()
 
             loading = self.generate_loading_icon("default_icons/loading.gif")
@@ -1176,7 +1175,7 @@ class Ui_MainWindow(object):
         self.req_list = req_list
         self.page_elements_fr = {}
         
-        if req_list == "Connection refused by server":
+        if type(req_list) == str:
             flag_location = "default_icons/connection_refused.png"
             flag = self.generate_flag(flag_location)
             self.verticalLayout_12.addLayout(flag)
@@ -1211,7 +1210,7 @@ class Ui_MainWindow(object):
             self.page_elements_fr["ln_fr"+str(i)].setStyleSheet("Text-align:left")
             self.page_elements_fr["ln_fr"+str(i)].setFlat(True)
             fullname = request_detail[0]+" "+request_detail[1]
-            self.page_elements_fr["ln_fr"+str(i)].clicked.connect(partial(self.scout_page,(request_detail[4],request_detail[2],fullname)))
+            self.page_elements_fr["ln_fr"+str(i)].clicked.connect(partial(self.scout_page,(request_detail[2],fullname)))
             self.page_elements_fr["ln_fr"+str(i)].setObjectName(_fromUtf8("ln_fr"+str(i)))
             sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
             sizePolicy.setHorizontalStretch(0)
@@ -1293,7 +1292,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_22.addLayout(loading)
         
 
-        self.thread_feed = feed_thread(self.user_detail["email"])
+        self.thread_feed = feed_thread(self.user_detail["id"])
         self.thread_feed.start()
         self.thread_feed.signal.connect(self.display_feed)
         self.thread_feed.signal_error.connect(self.display_feed)
@@ -1303,7 +1302,7 @@ class Ui_MainWindow(object):
         self.clear(self.verticalLayout_22)
         self.feed_page_elements = {}
         self.feed = feed
-        if feed=='Connection refused by server':
+        if type(feed)==str:
             flag_text = 'Connection refused by server'
             flag_location = "default_icons/connection_refused.png"
             flag = self.generate_flag(flag_location)
@@ -1338,7 +1337,7 @@ class Ui_MainWindow(object):
             self.feed_page_elements["btn_like"+str(i)].setFlat(True)
             self.feed_page_elements["btn_like"+str(i)].setObjectName(_fromUtf8("btn_like"+(str(i))))
             
-            self.feed_page_elements["time_stamp"+str(i)].setText(self.get_time_difference(feed_contents[7]))
+            self.feed_page_elements["time_stamp"+str(i)].setText(self.get_time_difference(feed_contents[6]))
 
             self.feed_page_elements["horizontalLayout_like"+str(i)].addWidget(self.feed_page_elements["btn_like"+str(i)])
             self.feed_page_elements["l_count"+str(i)] = QtGui.QLabel(self.scrollAreaWidgetContents_3)
@@ -1353,7 +1352,7 @@ class Ui_MainWindow(object):
                 self.feed_page_elements["btn_like"+str(i)].clicked.connect(partial(self.like , 
                 (self.feed_page_elements["btn_like"+str(i)],
                 self.feed_page_elements["l_count"+str(i)],
-                feed_contents[0],feed_contents[4],feed_contents[6],feed_contents[3],"like")))
+                feed_contents[0],feed_contents[4],feed_contents[3],"like")))
 
             else:
                 self.feed_page_elements["btn_like"+str(i)].setIcon(QtGui.QIcon("default_icons/liked.png"))
@@ -1361,7 +1360,7 @@ class Ui_MainWindow(object):
                 self.feed_page_elements["btn_like"+str(i)].clicked.connect(partial(self.like , 
                 (self.feed_page_elements["btn_like"+str(i)],
                 self.feed_page_elements["l_count"+str(i)],
-                feed_contents[0],feed_contents[4],feed_contents[6],feed_contents[3],"unlike")))
+                feed_contents[0],feed_contents[4],feed_contents[3],"unlike")))
             self.feed_page_elements["horizontalLayout_like"+str(i)].addWidget(self.feed_page_elements["l_count"+str(i)])
             self.feed_page_elements["spacerItem"+str(i)] = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
             self.feed_page_elements["horizontalLayout_like"+str(i)].addItem(self.feed_page_elements["spacerItem"+str(i)])
@@ -1385,9 +1384,7 @@ class Ui_MainWindow(object):
             self.feed_page_elements["feed_name"+str(i)].setStyleSheet("Text-align:left")
             self.feed_page_elements["feed_name"+str(i)].setFlat(True)
             self.feed_page_elements["feed_name"+str(i)].clicked.connect(partial(
-                self.scout_page,
-                (feed_contents[6],
-                feed_contents[4],feed_contents[1])))
+                    self.scout_page,(feed_contents[4],feed_contents[1])))
             self.feed_page_elements["feed_name"+str(i)].setObjectName(_fromUtf8("feed_name"+str(i)))
             self.feed_page_elements["horizontalLayout_feed"+str(i)].addWidget(self.feed_page_elements["feed_name"+str(i)])
             self.verticalLayout_22.insertLayout(0,self.feed_page_elements["horizontalLayout_feed"+str(i)])
@@ -1415,9 +1412,9 @@ class Ui_MainWindow(object):
     def scout_page(self,details):
         self.change_page(second = 5)
         self.clear(self.verticalLayout_23)
-        person_email,person_id,fullname = details
+        person_id,fullname = details
         
-        self.thread_scout = scout_thread(self.user_detail['email'],person_email,person_id,fullname)
+        self.thread_scout = scout_thread(self.user_detail['id'],person_id,fullname)
         self.thread_scout.start()
         self.thread_scout.signal.connect(self.display_scout)
         self.thread_scout.signal_error.connect(self.display_scout)
@@ -1428,13 +1425,13 @@ class Ui_MainWindow(object):
     def display_scout(self,details):
         self.clear(self.verticalLayout_23)
         
-        if details == "Connection refused by server":
+        if type(details) == str:
             flag_location = "default_icons/connection_refused.png"
             flag = self.generate_flag(flag_location = flag_location)
             self.verticalLayout_23.addLayout(flag)
             return
 
-        images,likes,people_liked,propic,thumbnail,time_post,person_email,person_id,fullname = details
+        images,likes,people_liked,propic,thumbnail,time_post,person_id,fullname = details
         self.horizontalLayout_13 = QtGui.QHBoxLayout()
         self.horizontalLayout_13.setObjectName(_fromUtf8("horizontalLayout_13"))
         spacerItem73 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -1544,13 +1541,13 @@ class Ui_MainWindow(object):
                 self.scout_page_elements["btn_like_scout"+str(i)].setIconSize(QtCore.QSize(23,23))
                 self.scout_page_elements["btn_like_scout"+str(i)].clicked.connect(partial(self.like, (
                 self.scout_page_elements["btn_like_scout"+str(i)],self.scout_page_elements["btn_count_scout"+str(i)],
-                scout_elements[0],person_id,person_email,scout_elements[1],"unlike")))
+                scout_elements[0],person_id,scout_elements[1],"unlike")))
             else:
                 self.scout_page_elements["btn_like_scout"+str(i)].setIcon(QtGui.QIcon("default_icons/notLiked.png"))
                 self.scout_page_elements["btn_like_scout"+str(i)].setIconSize(QtCore.QSize(23,23))
                 self.scout_page_elements["btn_like_scout"+str(i)].clicked.connect(partial(self.like, (
                 self.scout_page_elements["btn_like_scout"+str(i)],self.scout_page_elements["btn_count_scout"+str(i)],
-                scout_elements[0],person_id,person_email,scout_elements[1],"like")))
+                scout_elements[0],person_id,scout_elements[1],"like")))
 
             self.scout_page_elements["horizontal_layout1"+str(i)].addWidget(self.scout_page_elements["btn_count_scout"+str(i)])
             self.scout_page_elements["spacerItem_scout"+str(i)] = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -1565,7 +1562,7 @@ class Ui_MainWindow(object):
             self.verticalLayout_23.insertWidget(6,self.scout_page_elements["line_scout"+str(i)])
 
     def like(self,details):
-        button,like_count_lable,image,p_id,email,count,flag = details
+        button,like_count_lable,image,p_id,count,flag = details
         button.clicked.disconnect()
         button.setIcon(QtGui.QIcon("default_icons/liked.png"))
         button.setIconSize(QtCore.QSize(30,30))
@@ -1575,8 +1572,8 @@ class Ui_MainWindow(object):
             button.setIconSize(QtCore.QSize(23,23))
             like_count = int(count)+1
             button.clicked.connect(partial(self.like , 
-                (button,like_count_lable,image,p_id,email,like_count,"unlike")))
-            self.like_thread = threading.Thread(target = client.like_unlike, args=(image,self.user_detail["id"],self.user_detail["email"],email,'like'))
+                (button,like_count_lable,image,p_id,like_count,"unlike")))
+            self.like_thread = threading.Thread(target = client.like_unlike, args=(image,p_id,self.user_detail["id"],'like'))
             self.like_thread.start()
             self.like_thread.setDaemon = True
 
@@ -1585,8 +1582,8 @@ class Ui_MainWindow(object):
             button.setIconSize(QtCore.QSize(23,23))
             like_count = int(count)-1
             button.clicked.connect(partial(self.like , 
-                (button,like_count_lable,image,p_id,email,like_count,"like")))
-            self.like_thread = threading.Thread(target = client.like_unlike, args=(image,self.user_detail["id"],self.user_detail["email"],email,'unlike'))
+                (button,like_count_lable,image,p_id,like_count,"like")))
+            self.like_thread = threading.Thread(target = client.like_unlike, args=(image,p_id,self.user_detail["id"],'unlike'))
             self.like_thread.start()
             self.like_thread.setDaemon = True
         
