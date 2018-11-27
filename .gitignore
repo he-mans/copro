@@ -1,0 +1,6 @@
+.server/account_user0
+.server/account_user1
+.server/__pycache__
+.server/copro.db
+.client/__pycache__
+.server/user_count.txt
