@@ -149,6 +149,7 @@ def main():
             print(e)
             print('traceback for above search error')
             traceback.print_exc()
+            break
         c.close()
     s.close()
 

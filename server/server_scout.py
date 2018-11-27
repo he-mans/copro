@@ -31,7 +31,7 @@ def main():
 
             print('receiving details')
             person_id = pickle.loads(c.recv(4096))
-            c.sendall('details received by server'.encode())
+            c.sendall(b'details received by server')
             print('received')
             
             os.chdir(f"account_user{person_id}")
@@ -104,6 +104,7 @@ def main():
             print(e)
             print('traceback for above scout error')
             traceback.print_exc()
+            break
         c.close()
     s.close()
 

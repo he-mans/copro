@@ -148,6 +148,7 @@ def main():
             print(e)
             print('traceback for above feed error')
             traceback.print_exc()
+            break
         c.close()
     
     s.close()

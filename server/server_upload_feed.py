@@ -91,6 +91,7 @@ def main():
         except Exception as e:
             print(e)
             traceback.print_exc()
+            break
         c.close()
     s.close()
 

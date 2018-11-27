@@ -119,6 +119,7 @@ def main():
             print(e)
             print('traceback for above change_settings error')
             traceback.print_exc()
+            break
         c.close()
         
 

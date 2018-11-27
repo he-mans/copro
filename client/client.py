@@ -536,7 +536,7 @@ def fetch_scout_view(user_id,person_id):
 
     print('sending details to server')
     s.sendall(pickle.dumps(person_id))
-    print(s.recv(4096).decode('utf-8'))
+    print(s.recv(4096))
 
     print('receiving images names')
     names = pickle.loads(s.recv(4096))

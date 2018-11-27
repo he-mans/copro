@@ -1469,7 +1469,6 @@ class Ui_MainWindow(object):
             flag_location = "default_icons/feed_flag.png"
             flag = self.generate_flag(flag_location = flag_location)
             self.verticalLayout_23.addLayout(flag)
-            return
 
         for i,scout_elements in enumerate(self.scout_):
             self.scout_page_elements["horizontal_layout_scout"+str(i)] = QtGui.QHBoxLayout()
@@ -1560,6 +1559,8 @@ class Ui_MainWindow(object):
             self.scout_page_elements["line_scout"+str(i)].setObjectName(_fromUtf8("line_scout"+str(i)))
             self.verticalLayout_23.insertWidget(5,self.scout_page_elements["time_stamp"+str(i)])
             self.verticalLayout_23.insertWidget(6,self.scout_page_elements["line_scout"+str(i)])
+        spacerItem_scout = QtGui.QSpacerItem(20, 13, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_23.addItem(spacerItem_scout)
 
     def like(self,details):
         button,like_count_lable,image,p_id,count,flag = details

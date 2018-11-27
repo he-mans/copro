@@ -103,6 +103,7 @@ def main():
             print(e)
             print('traceback for above create_account error')
             traceback.print_exc()
+            break
         c.close()
     
     s.close()
