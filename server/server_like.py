@@ -52,6 +52,7 @@ def main():
             details = pickle.loads(c.recv(4096))
             c.sendall('received by server'.encode())
 
+            print(os.getcwd())
             if details[-1] == "like":
                 add_like(details[0],details[1],details[2])
 

@@ -5,8 +5,18 @@ from PIL import Image as PilImage
 import shutil
 import time
 import datetime
+from io import BytesIO
 
 ip = '127.0.0.1'
+
+def get_byte_array(images):
+    images_byte_array_dict = {}
+    images_byte_array = []
+    for i,image in enumerate(images):
+        images_byte_array_dict.update({f'array{i}':BytesIO()})
+        image.save(images_byte_array_dict[f'array{i}'],"JPEG")
+        images_byte_array.append(images_byte_array_dict[f'array{i}'].getvalue() )
+    return images_byte_array
 
 def create(first,last,email,password):
     port = 2000
@@ -59,20 +69,7 @@ def login(email,password):
     print("received")
     if return_status!=1 and return_status!=0:
         user_id = return_status["id"]
-        if not os.path.exists(f"account_user{user_id}"):
-            print("creating temp folders")
-            os.makedirs(f"account_user{user_id}/feed_user{user_id}")
-            os.chdir(f"account_user{user_id}")
-            os.mkdir(f"profile_pic_user{user_id}")
-            os.mkdir(f"thumbnail_user{user_id}")
-            os.mkdir(f"thumbnail_people_feed")
-            os.mkdir(f"thumbnail_people_search")
-            os.mkdir(f"thumbnail_people_friend_request")
-            os.mkdir(f"scout")
-            os.chdir("..")
-            print('folders created')
-        
-        
+    
         print("sending request to send profile pic and thumbnail")
         s.sendall("send".encode())
 
@@ -86,10 +83,9 @@ def login(email,password):
         with open("images.pickle",'rb') as f:
             profile,thumbnail = pickle.load(f)
             
-        print("saving images")
-        profile.save(f'account_user{user_id}/profile_pic_user{user_id}/propic.jpg')
-        thumbnail.save(f'account_user{user_id}/thumbnail_user{user_id}/thumbnail.jpg')
-        print('image saved')
+        propic = BytesIO()
+        profile.save(propic,"JPEG")
+        propic = propic.getvalue()
             
     else:
         s.sendall("don't send".encode())
@@ -101,7 +97,7 @@ def login(email,password):
     finally:
         s.close()
         print("socket closed")
-        return return_status
+        return [return_status,propic]
 
 def account_settings(flag,new_detail,user_detail):
     port = 3000
@@ -168,28 +164,18 @@ def change_propic(propic,user_id):
             s.send(data)
             data = f.read(4096)
         s.send(b'no more data')
-
-    print(s.recv(4096).decode('utf-8'))
-    propic.thumbnail((150,150))
-    propic.save(f"account_user{user_id}/profile_pic_user{user_id}/propic.jpg")
-    propic.thumbnail((60,60))
-    propic.save(f"account_user{user_id}/thumbnail_user{user_id}/thumbnail.jpg")
-    return 1
     
-        
+    print(s.recv(4096).decode('utf-8'))
+    s.close()
+    propic.thumbnail((150,150))
+    propic_byte_array = BytesIO()
+    propic.save(propic_byte_array,"JPEG")
+    propic_byte_array = propic_byte_array.getvalue()
+    return propic_byte_array
 
 def fetch_feed(user_id):
     port = 3500
     global ip
-
-    try:
-        shutil.rmtree(f'account_user{user_id}/feed_user{user_id}')
-        shutil.rmtree(f'account_user{user_id}/thumbnail_people_feed')
-    except Exception as e:
-        print(e)
-    finally:
-        os.makedirs(f'account_user{user_id}/feed_user{user_id}')
-        os.makedirs(f'account_user{user_id}/thumbnail_people_feed')
 
     print("creating feed socket")
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -205,7 +191,7 @@ def fetch_feed(user_id):
     print("sent")
 
     print("receiving feed image names")
-    images = pickle.loads(s.recv(4096))
+    images_name = pickle.loads(s.recv(4096))
     s.sendall("received".encode())
 
     print("requesting images")
@@ -224,15 +210,8 @@ def fetch_feed(user_id):
 
     with open('images.pickle','rb') as f:
         images_list = pickle.load(f)
-
-    os.chdir(f"account_user{user_id}/feed_user{user_id}")
-
-    for image,image_name_ in zip(images_list,images):
-        image.save(image_name_)
-    print("images saved")
     
-    
-    os.chdir("..")
+    images_byte_array = get_byte_array(images_list)
     
     print("requesting user details")
     details = pickle.loads(s.recv(4096))
@@ -250,27 +229,16 @@ def fetch_feed(user_id):
         thumbnails = pickle.load(f)
     print("thumbnail received")
 
-    thumbnail_counter = 0
-    os.chdir("thumbnail_people_feed")
+    thumbnails_byte_array = get_byte_array(thumbnails)
     
-    for thumbnail in thumbnails:
-        thumbnail.save(f"thumbnail_{thumbnail_counter}.jpg")
-        print("image saved")
-        thumbnail_counter+=1
-    
-    images_time = [datetime.datetime.strptime(image.replace('$',':').split('_')[0],'%Y-%m-%d %H:%M:%S.%f') for image in images]
-    images = [f"account_user{user_id}/feed_user{user_id}/{image}" for image in images]
-    thumbnails = [f"account_user{user_id}/thumbnail_people_feed/{thumbnail}" for thumbnail in os.listdir()]
-    thumbnails = sorted(thumbnails)
+    images_time = [datetime.datetime.strptime(image.replace('$',':').split('_')[0],'%Y-%m-%d %H:%M:%S.%f') for image in images_name]
 
     details = list(details)
-    details.insert(0,thumbnails)
-    details.insert(0,images)
+    details.insert(0,thumbnails_byte_array)
+    details.insert(0,images_name)
     details.append(images_time)
-    
-    os.chdir("..")
+    details.append(images_byte_array)
     os.remove('thumbnail_image.pickle')
-    os.chdir("..")
     os.remove('images.pickle')
     s.close()
     return details
@@ -337,13 +305,6 @@ def search(searched_person,user_id):
 
     port = 5000
     global ip
-    
-    try:
-        shutil.rmtree(f'account_user{user_id}/thumbnail_people_search')
-    except Exception as e:
-        print(e)
-    finally:
-        os.makedirs(f'account_user{user_id}/thumbnail_people_search')
 
     print("creating socket")
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -380,10 +341,11 @@ def search(searched_person,user_id):
 
     os.remove('images.pickle')
 
-    os.chdir(f'account_user{user_id}/thumbnail_people_search')
+    thumbnails_byte_array = {}
     for i,thumbnail in enumerate(thumbnails):
-        thumbnail.save(f'thumbnail_{i}.jpg')
-
+        thumbnails_byte_array.update({'array'+str(i):BytesIO()})
+        thumbnail.save(thumbnails_byte_array[f'array{i}'],"JPEG")
+        thumbnails_byte_array['array'+str(i)] = thumbnails_byte_array[f'array{i}'].getvalue()
 
     print('recieving details')
     details_search = pickle.loads(s.recv(4096))
@@ -391,14 +353,11 @@ def search(searched_person,user_id):
 
     search_result,friend_list,sent = details_search
     search_result = [list(elements) for elements in search_result]
-    thumbnails = os.listdir()
-    thumbnails = sorted(thumbnails,key = lambda x: int(x.split('.')[0].split('_')[1]))
-    for thumbnail,elements in zip(thumbnails,search_result):
-        elements[3] = f'account_user{user_id}/thumbnail_people_search/{thumbnail}'
+
+    for thumbnail,elements in zip(thumbnails_byte_array,search_result):
+       elements[3] = thumbnails_byte_array[thumbnail]
 
     search_result = tuple(search_result)
-    os.chdir('..')
-    os.chdir('..')
     return (search_result,friend_list,sent)
 
     s.close() 
@@ -430,13 +389,6 @@ def fetch_req(user_id):
     
     port = 5500
     global ip
-    
-    try:
-        shutil.rmtree(f'account_user{user_id}/thumbnail_people_friend_request')
-    except Exception as e:
-        print(e)
-    finally:
-        os.makedirs(f'account_user{user_id}/thumbnail_people_friend_request')
 
     print('creating socket')
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -469,24 +421,20 @@ def fetch_req(user_id):
         thumbnails = pickle.load(f)
 
     os.remove('images.pickle')
-    for i,thumbnail in enumerate(thumbnails):
-        thumbnail.save(f'account_user{user_id}/thumbnail_people_friend_request/thumbnail_{i}.jpg')
-
-    thumbnails = [f'account_user{user_id}/thumbnail_people_friend_request/{thumbnail}' for thumbnail in os.listdir(f'account_user{user_id}/thumbnail_people_friend_request')]
-    thumbnails = sorted(thumbnails,key = lambda x: int(x.split("/")[-1].split('.')[0].split('_')[1]))
-
+    
+    thumbnails = get_byte_array(thumbnails)
+    
     print("receiving req details")
     req_list = pickle.loads(s.recv(4096))
     print('received')
 
     req_list.remove('')
     new_req_list = []
-    for req,thumbnail in zip(req_list,thumbnails):
+    for req in req_list:
         req = req.split(' ')
-        req[3] = thumbnail
         new_req_list.append((' ').join(req))
 
-    return new_req_list
+    return [new_req_list,thumbnails]
 
 def reject_request(user_id,new_req_list,requester_id):
     port = 5500
@@ -540,17 +488,9 @@ def fetch_scout_view(user_id,person_id):
 
     print('receiving images names')
     names = pickle.loads(s.recv(4096))
-    names = [name.split('.jpg')[0] for name in names]
-    images_time = [datetime.datetime.strptime(name.replace('$',':').split('_')[0] , '%Y-%m-%d %H:%M:%S.%f') for name in names]
+    images_time = [datetime.datetime.strptime(name.split('.jpg')[0].replace('$',':').split('_')[0] , '%Y-%m-%d %H:%M:%S.%f') for name in names]
     s.sendall(b'names received by client')
     print('received')
-
-    try:
-        shutil.rmtree(f'account_user{user_id}/scout')
-    except Exception as e:
-        print(e)
-    finally:
-        os.makedirs(f'account_user{user_id}/scout')
 
     print('receiving images')
     with open('images.pickle','wb') as f:
@@ -567,10 +507,8 @@ def fetch_scout_view(user_id,person_id):
     with open('images.pickle','rb') as f:
         images = pickle.load(f)
 
+    images = get_byte_array(images)
     os.remove('images.pickle')
-
-    for image,name in zip(images,names):
-        image.save(f'account_user{user_id}/scout/{name}.jpg')
 
     print('recieving likes and people liked')
     likes,people_liked = pickle.loads(s.recv(4096))
@@ -594,18 +532,6 @@ def fetch_scout_view(user_id,person_id):
 
     os.remove('images.pickle')
 
-    pro_and_thu[0].save(f'account_user{user_id}/scout/propic.jpg')
-    pro_and_thu[1].save(f'account_user{user_id}/scout/thumbnail.jpg')
-
-    images = os.listdir(f'account_user{user_id}/scout')
-    images.remove('propic.jpg')
-    images.remove('thumbnail.jpg')
-    images = sorted(images,key = lambda x:datetime.datetime.strptime(x.replace('$',':').split('_')[0],'%Y-%m-%d %H:%M:%S.%f'))
-    images = [f'account_user{user_id}/scout/{image}' for image in images]
-    propic = f'account_user{user_id}/scout/propic.jpg'
-    thumbnail = f'account_user{user_id}/scout/thumbnail.jpg'
+    propic,thumbnail = get_byte_array(pro_and_thu)
     
-    return (images,likes,people_liked,propic,thumbnail,images_time)
-
-def logout(user_id):
-    shutil.rmtree(f'account_user{user_id}')
+    return (names,likes,people_liked,propic,thumbnail,images_time,images)

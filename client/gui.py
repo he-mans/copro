@@ -38,7 +38,7 @@ class create_account_thread(QtCore.QThread):
             self.signal.emit(-1)
 
 class login_thread(QtCore.QThread):
-    signal = QtCore.pyqtSignal(dict)
+    signal = QtCore.pyqtSignal(list)
     signal_error = QtCore.pyqtSignal(int)
     def __init__(self,email,password):
         QtCore.QThread.__init__(self)
@@ -66,9 +66,9 @@ class feed_thread(QtCore.QThread):
     def run(self):
         self.running = True
         try:
-            images,thumbnails,full_names,likes,ids,people_liked,times= client.fetch_feed(self.user_id)
-            feed = [(image,full_name,thumbnail,like,p_id,peoples,time) for image,full_name,thumbnail,like,p_id,peoples,time in zip(
-                            images,full_names,thumbnails,likes,ids,people_liked,times)]
+            images_name,thumbnails,full_names,likes,ids,people_liked,times,images= client.fetch_feed(self.user_id)
+            feed = [(image_name,full_name,thumbnail,like,p_id,peoples,time,image) for image_name,full_name,thumbnail,like,p_id,peoples,time,image in zip(
+                            images_name,full_names,thumbnails,likes,ids,people_liked,times,images)]
             self.signal.emit(feed)
         except ConnectionRefusedError:
             self.signal_error.emit("Connection refused by server")
@@ -843,6 +843,7 @@ class Ui_MainWindow(object):
         self.feed = []
         self.page_elements = {}
         self.search_result = []
+        self.req_thumbnails = []
         self.page_elements_fr = {}
         self.req_list = []
 
@@ -909,7 +910,6 @@ class Ui_MainWindow(object):
         self.btn_post.clicked.connect(lambda:self.post_image())      
 
     def logout(self):
-        client.logout(self.user_detail["id"])
         self.user_detail = {}
         self.search_result = []
         self.sent = []
@@ -976,7 +976,7 @@ class Ui_MainWindow(object):
         self.thread_login.signal_error.connect(self.login_message)
 
     def login_message(self,user_detail):
-        self.user_detail = user_detail
+        self.user_detail,propic = user_detail
         self.btn_sign_up.setEnabled(True)
         self.btn_login.setEnabled(True)
         
@@ -989,7 +989,9 @@ class Ui_MainWindow(object):
         else:
             self.le_email.clear()
             self.le_password.clear()
-            self.l_propic_as.setPixmap(QtGui.QPixmap(self.user_detail["propic"]))
+            pixmap = QtGui.QPixmap()
+            pixmap.loadFromData(propic)
+            self.l_propic_as.setPixmap(pixmap)
             self.feed_page()
         self.clear(self.loading_icon_login)
 
@@ -1032,10 +1034,12 @@ class Ui_MainWindow(object):
     def change_propic(self):
         propic = QtGui.QFileDialog.getOpenFileName()
         rescaled_propic = client.change_propic(propic,self.user_detail["id"])
-        if rescaled_propic == 0:
+        if rescaled_propic is 0:
             self.message_box("account settings","image format not supported")
-        elif rescaled_propic is 1:
-            self.l_propic_as.setPixmap(QtGui.QPixmap(self.user_detail["propic"]))
+        elif rescaled_propic is not None:
+            pixmap = QtGui.QPixmap()
+            pixmap.loadFromData(rescaled_propic)
+            self.l_propic_as.setPixmap(pixmap)
 
     def clear(self,layout,flag=None):  
         while layout.count():
@@ -1139,7 +1143,10 @@ class Ui_MainWindow(object):
             fullname = result[0]+" "+result[1]
             self.page_elements["ln_fp"+str(i)].setText(result[0]+" "+result[1])
             self.page_elements["ln_fp"+str(i)].clicked.connect(partial(self.scout_page,(result[2],fullname)))
-            self.page_elements["li_fp"+str(i)].setPixmap(QtGui.QPixmap(result[3]))
+            pixmap = QtGui.QPixmap()
+            print(pixmap)
+            pixmap.loadFromData(result[3])
+            self.page_elements["li_fp"+str(i)].setPixmap(pixmap)
             self.page_elements["line_search"+str(i)] = QtGui.QFrame(self.scrollAreaWidgetContents)
             self.page_elements["line_search"+str(i)].setFrameShape(QtGui.QFrame.HLine)
             self.page_elements["line_search"+str(i)].setFrameShadow(QtGui.QFrame.Raised)
@@ -1172,7 +1179,7 @@ class Ui_MainWindow(object):
 
     def friend_req(self,req_list):
         self.clear(self.verticalLayout_12)
-        self.req_list = req_list
+        self.req_list,self.req_thumbnails = req_list
         self.page_elements_fr = {}
         
         if type(req_list) == str:
@@ -1187,7 +1194,7 @@ class Ui_MainWindow(object):
             self.verticalLayout_12.addLayout(flag)
             return
         
-        for i,request in enumerate(self.req_list):
+        for i,(request,thumbnail) in enumerate(zip(self.req_list,self.req_thumbnails)):
             request_detail = request.split(" ")
             self.page_elements_fr["l_fr"+str(i)] = QtGui.QLabel(self.scrollAreaWidgetContents_2)
             self.page_elements_fr["ln_fr"+str(i)] = QtGui.QPushButton(self.scrollAreaWidgetContents_2)
@@ -1253,7 +1260,9 @@ class Ui_MainWindow(object):
             self.page_elements_fr["btn_fr_reject"+str(i)].setIconSize(QtCore.QSize(18,18))
             self.page_elements_fr["btn_fr_reject"+str(i)].setText("reject request")
             self.page_elements_fr["ln_fr"+str(i)].setText(request_detail[0]+" "+request_detail[1])
-            self.page_elements_fr["l_fr"+str(i)].setPixmap(QtGui.QPixmap(request_detail[3]))
+            pixmap = QtGui.QPixmap()
+            pixmap.loadFromData(thumbnail)
+            self.page_elements_fr["l_fr"+str(i)].setPixmap(pixmap)
             self.page_elements_fr["line_fr"+str(i)] = QtGui.QFrame(self.scrollAreaWidgetContents_2)
             self.page_elements_fr["line_fr"+str(i)].setFrameShape(QtGui.QFrame.HLine)
             self.page_elements_fr["line_fr"+str(i)].setFrameShadow(QtGui.QFrame.Raised)
@@ -1345,7 +1354,6 @@ class Ui_MainWindow(object):
             font = self.generate_font(family = "Ubuntu Condensed",point_size = 13)
             self.feed_page_elements["l_count"+str(i)].setFont(font)
             self.feed_page_elements["l_count"+str(i)].setText(feed_contents[3])
-
             if str(self.user_detail["id"]) not in feed_contents[5]:
                 self.feed_page_elements["btn_like"+str(i)].setIcon(QtGui.QIcon("default_icons/notLiked.png"))
                 self.feed_page_elements["btn_like"+str(i)].setIconSize(QtCore.QSize(23,23))
@@ -1370,7 +1378,9 @@ class Ui_MainWindow(object):
             sizePolicy.setHeightForWidth(self.feed_page_elements["feed_image"+str(i)].sizePolicy().hasHeightForWidth())
             self.feed_page_elements["feed_image"+str(i)].setSizePolicy(sizePolicy)
             self.feed_page_elements["feed_image"+str(i)].setObjectName(_fromUtf8("feed_image"+str(i)))
-            self.feed_page_elements["feed_image"+str(i)].setPixmap(QtGui.QPixmap(feed_contents[2]))
+            pixmap = QtGui.QPixmap()
+            pixmap.loadFromData(feed_contents[2])
+            self.feed_page_elements["feed_image"+str(i)].setPixmap(pixmap)
             self.feed_page_elements["horizontalLayout_feed"+str(i)].addWidget(self.feed_page_elements["feed_image"+str(i)])
             self.feed_page_elements["feed_name"+str(i)] = QtGui.QPushButton(self.scrollAreaWidgetContents_3)
             sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
@@ -1396,7 +1406,9 @@ class Ui_MainWindow(object):
             self.feed_page_elements["feed_content"+str(i)].setSizePolicy(sizePolicy)
             self.feed_page_elements["feed_content"+str(i)].setFont(font)
             self.feed_page_elements["feed_content"+str(i)].setObjectName(_fromUtf8("feed_content"+str(i)))
-            self.feed_page_elements["feed_content"+str(i)].setPixmap(QtGui.QPixmap(feed_contents[0]))
+            pixmap = QtGui.QPixmap()
+            pixmap.loadFromData(feed_contents[7])
+            self.feed_page_elements["feed_content"+str(i)].setPixmap(pixmap)
             self.verticalLayout_22.insertWidget(1,self.feed_page_elements["feed_content"+str(i)])
             self.verticalLayout_22.insertLayout(2,self.feed_page_elements["horizontalLayout_like"+str(i)])
             self.feed_page_elements["line_feed"+str(i)] = QtGui.QFrame(self.scrollAreaWidgetContents_3)
@@ -1431,7 +1443,7 @@ class Ui_MainWindow(object):
             self.verticalLayout_23.addLayout(flag)
             return
 
-        images,likes,people_liked,propic,thumbnail,time_post,person_id,fullname = details
+        images_name,likes,people_liked,propic,thumbnail,time_post,images,person_id,fullname = details
         self.horizontalLayout_13 = QtGui.QHBoxLayout()
         self.horizontalLayout_13.setObjectName(_fromUtf8("horizontalLayout_13"))
         spacerItem73 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -1460,9 +1472,12 @@ class Ui_MainWindow(object):
         self.line_scout.setObjectName(_fromUtf8("line_scout"))
         self.verticalLayout_23.insertWidget(1,self.line_scout)
         
-        self.l_propic_scout.setPixmap(QtGui.QPixmap(propic))
+        pixmap = QtGui.QPixmap()
+        pixmap.loadFromData(propic)
+        self.l_propic_scout.setPixmap(pixmap)
         self.l_name_scout.setText(fullname)
-        self.scout_ = [(image,like,people,time) for image,like,people,time in zip(images,likes,people_liked,time_post) ]
+        self.scout_ = [(image_name,like,people,time,image) for image_name,like,people,time,image in 
+                        zip(images_name,likes,people_liked,time_post,images) ]
         self.scout_page_elements={}
         
         if self.scout_==[]:
@@ -1486,7 +1501,9 @@ class Ui_MainWindow(object):
             sizePolicy.setVerticalStretch(0)
             sizePolicy.setHeightForWidth(self.scout_page_elements["propic_scout"+str(i)].sizePolicy().hasHeightForWidth())
             self.scout_page_elements["propic_scout"+str(i)].setSizePolicy(sizePolicy)
-            self.scout_page_elements["propic_scout"+str(i)].setPixmap(QtGui.QPixmap(thumbnail))
+            pixmap = QtGui.QPixmap()
+            pixmap.loadFromData(thumbnail)
+            self.scout_page_elements["propic_scout"+str(i)].setPixmap(pixmap)
             self.scout_page_elements["propic_scout"+str(i)].setObjectName(_fromUtf8("propic_scout"+str(i)))
             self.scout_page_elements["horizontal_layout_scout"+str(i)].addWidget(self.scout_page_elements["propic_scout"+str(i)])
             self.scout_page_elements["preson_name_scout"+str(i)] = QtGui.QLabel(self.scrollAreaWidgetContents_4)
@@ -1507,7 +1524,9 @@ class Ui_MainWindow(object):
             sizePolicy.setVerticalStretch(1)
             sizePolicy.setHeightForWidth(self.scout_page_elements["l_feed_scout"+str(i)].sizePolicy().hasHeightForWidth())
             self.scout_page_elements["l_feed_scout"+str(i)].setSizePolicy(sizePolicy)
-            self.scout_page_elements["l_feed_scout"+str(i)].setPixmap(QtGui.QPixmap(scout_elements[0]))
+            pixmap = QtGui.QPixmap()
+            pixmap.loadFromData(scout_elements[4])
+            self.scout_page_elements["l_feed_scout"+str(i)].setPixmap(pixmap)
             self.scout_page_elements["l_feed_scout"+str(i)].setObjectName(_fromUtf8("l_feed_scout"+str(i)))
             self.verticalLayout_23.insertWidget(3,self.scout_page_elements["l_feed_scout"+str(i)])
             self.scout_page_elements["horizontal_layout1"+str(i)] = QtGui.QHBoxLayout()

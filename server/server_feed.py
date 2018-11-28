@@ -5,6 +5,7 @@ from PIL import Image as PilImage
 import sqlite3
 import datetime
 import traceback
+from io import BytesIO
 
 def get_image_names(user_id):
     os.chdir(f"account_user{user_id}/feed_user{user_id}")
@@ -15,7 +16,6 @@ def get_image_names(user_id):
     os.chdir('..')
     return ls
 
-    
 def get_user_details(user_id,ls):
     
     conn_feed = sqlite3.connect("copro.db")
@@ -39,8 +39,7 @@ def get_user_details(user_id,ls):
         result = cursor_feed.fetchone()
         
         full_name.append(result[0]+" "+result[1])
-    for i in range(2):
-        os.chdir("..")
+    os.chdir("../..")
     for image in ls:
         image_txt.append(image.replace(".jpg",".txt")) 
         image_people_liked.append(image.replace(".jpg","_people_liked.txt"))
@@ -105,7 +104,7 @@ def main():
                 os.chdir(f'account_user{user_id}/feed_user{user_id}')
 
                 images = [PilImage.open(image) for image in image_names]
-
+                
                 with open(f'images_feed_user{add}.pickle','wb') as f:
                     pickle.dump(images,f)
 
