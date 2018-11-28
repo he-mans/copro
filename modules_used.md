@@ -9,6 +9,7 @@ components:
   - pickle for converting object to byte strings
   - partial form functools for mapping buttons to functions
   - threading for threading
+  - BytesIO for convresion of image into byte
 
 sockets:
 -
@@ -49,3 +50,7 @@ in order to like an image or to send friend request to a person or any other suc
 threading:
 -
 there are total 9 server files performing different tasks. running them seperately on differently on different command lines may prove hard to managa and moniter. file 'main.py' in server takes care of this as it automatically runs all the server files and in order for these server files to run independently, threading is used. this may not be a good idea given the situation but it is done for ease of use for demo purposes.
+
+BytesIO
+-
+to map image directly onto a lable rather than storing it into harddrive and then using its location to map it, the image needs to be converted to bytes first. to achive this we have used BytesIO. saving image to its object and then performing getvalue on it performs the task we need.
