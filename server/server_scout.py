@@ -31,7 +31,7 @@ def main():
 
             print('receiving details')
             person_id = pickle.loads(c.recv(4096))
-            c.sendall(b'details received by server')
+            #c.send(b'details received by server')
             print('received')
             
             os.chdir(f"account_user{person_id}")
