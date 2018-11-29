@@ -8,15 +8,15 @@ as soon as you click the login button server checks if the password entered is c
 
 uploading image or profile pic:
 -
-uploading a image for post/feed or for new profile pic are basically same. image is sent to the server and then it is saved to respective forlde feed or profile_pic. in case feed the image is saved in with a unique naming scheme which inclide the date and time it was added and the user id it was added by. two txt files are made which keep track of no. of likes and the people that have liked the post. the feed image is saved to all the friend's feed folder the user has.
+uploading a image for post/feed or for new profile pic are basically same. image is sent to the server and then it is saved to respective folder feed or profile_pic. in case of, feed the image is saved with a unique naming scheme which include the date and time it was added and the user id it was added by. two txt files are made which keep track of no. of likes and the people that have liked the post. the feed image is saved to all the friend's feed folder the user has.
 
-searching and freind request:
+searching and friend request:
 -
-while seraching the the database is returns all the user whose either first name or lastname or fullname resembles to the text entered by user. also his id and thumbnail is returned. thumbnail so that user can identify different results and id in case you want to send the person a friend request. when you send a person a friend request, your id is saved in his request list and his id is saved into your sent list in order to prevent possiblity of sending the request to him again.
+while seraching,the database returns all the user whose either first name or last name or fullname resembles to the text entered by user. also his id and thumbnail is returned. thumbnail so that user can identify different results and id in case you want to send the person a friend request. when you send a person a friend request, your id is saved in his request list and his id is saved into your sent list in order to prevent possiblity of sending the request to him again.
 
 accepting or rejecting request:
 - 
-request list is stored in database in form of a string. id of different users are seperated by a space which can be easily converted into a list and then parese into int. when viewing frined request this method is used to retreive the id of the requesters and if request is accepted the id is removed form the list, added to friend list which is also stored in the same way and then the updated list converted into a string and is stored in database and you are removed from his sent list.
+request list is stored in database in form of a string. id of different users are seperated by a space which can be easily converted into a list and then paresed into int. when viewing friend request this method is used to retreive the id of the requesters and if request is accepted the id is removed form the list, added to friend list which is also stored in the same way and then the updated list is converted into a string and is stored in database and you are removed from his sent list.
 
 for reject it is same process but he/she is not added into your friend list.
 
