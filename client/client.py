@@ -283,6 +283,7 @@ def search(searched_person,user_id):
     print('sending flag')
     s.sendall('search'.encode())
     print("sent")
+    print(s.recv(4096))
 
     print('sending details')
     details = [searched_person,user_id]

@@ -95,8 +95,10 @@ def main():
             c,add = s.accept()
             print("client connected")
 
+            print("receiving flag")
             flag = c.recv(4096)
             if flag =='search'.encode():
+                c.sendall("flag received by client".encode())
                 print('flag recieved')
 
                 print('receiving details')
