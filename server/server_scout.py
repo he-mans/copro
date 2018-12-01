@@ -11,11 +11,12 @@ from PIL import Image as PilImage
 def get_images_name(user_id):
     os.chdir(f"account_user{user_id}")
     images_name = [image for image in os.listdir() if image.endswith(".txt") is False and os.path.isdir(image) is False]
+    images_name = sorted(images_name,key = lambda x:datetime.datetime.strptime(x.split('_')[0].replace('$',':'),'%Y-%m-%d %H:%M:%S.%f'))
     os.chdir('..')
     return images_name
 
 def get_image_time(images_name):
-    images_time = [datetime.datetime.strptime(name.split('.jpg')[0].replace('$',':').split('_')[0] , '%Y-%m-%d %H:%M:%S.%f') for name in images_name]
+    images_time = [datetime.datetime.strptime(name.split('_')[0].replace('$',':') , '%Y-%m-%d %H:%M:%S.%f') for name in images_name]
     return images_time
 
 def get_images(images_name,user_id):

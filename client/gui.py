@@ -1148,7 +1148,6 @@ class Ui_MainWindow(object):
             self.page_elements["ln_fp"+str(i)].setText(result[0]+" "+result[1])
             self.page_elements["ln_fp"+str(i)].clicked.connect(partial(self.scout_page,(result[2],fullname)))
             pixmap = QtGui.QPixmap()
-            print(pixmap)
             pixmap.loadFromData(result[3])
             self.page_elements["li_fp"+str(i)].setPixmap(pixmap)
             self.page_elements["line_search"+str(i)] = QtGui.QFrame(self.scrollAreaWidgetContents)
