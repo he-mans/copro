@@ -1,10 +1,61 @@
-import socket
-from PIL import Image as PilImage
 import os
+import socket
 import pickle
 import sqlite3
 import datetime
 import traceback
+import convert_to_bytes
+from PIL import Image as PilImage
+
+
+def get_images_name(user_id):
+    os.chdir(f"account_user{user_id}")
+    images_name = [image for image in os.listdir() if image.endswith(".txt") is False and os.path.isdir(image) is False]
+    os.chdir('..')
+    return images_name
+
+def get_image_time(images_name):
+    images_time = [datetime.datetime.strptime(name.split('.jpg')[0].replace('$',':').split('_')[0] , '%Y-%m-%d %H:%M:%S.%f') for name in images_name]
+    return images_time
+
+def get_images(images_name,user_id):
+    os.chdir(f"account_user{user_id}")
+    images = [convert_to_bytes.convert_image(PilImage.open(image_name)) for image_name in images_name]
+    os.chdir("..")
+    return images
+
+def get_details(images_name,user_id):
+    os.chdir(f"account_user{user_id}")
+    likes_file = [image.replace(".jpg",".txt") for image in images_name]
+    people_liked_files = [file.replace(".txt","_people_liked.txt") for file in likes_file]
+    people_liked=[]
+    likes = []
+            
+    for file in likes_file:
+        with open(file,"r") as f:
+            likes.append(f.read())
+            
+    for file in people_liked_files:
+        with open(file,"r") as f:
+            people__ = [lines.strip() for lines in f.readlines()]
+            people_liked.append(people__)
+    os.chdir("..")
+    return (people_liked,likes)
+
+def get_propic_and_thumbnail(person_id):
+    conn_scout = sqlite3.connect('copro.db')
+    cursor_scout = conn_scout.cursor()
+
+    with conn_scout:
+        cursor_scout.execute("""SELECT propic,feed_thumbnail FROM accounts
+                    WHERE id = (:person_id)""",{
+                    "person_id":person_id
+                    })
+        propic,thumbnail = cursor_scout.fetchone()
+        propic,thumbnail = PilImage.open(propic),PilImage.open(thumbnail)
+    
+    return convert_to_bytes.convert_image([propic,thumbnail])
+
 
 def main():
 
@@ -31,74 +82,32 @@ def main():
 
             print('receiving details')
             person_id = pickle.loads(c.recv(4096))
-            #c.send(b'details received by server')
             print('received')
             
-            os.chdir(f"account_user{person_id}")
-            posts = os.listdir()
-            images_name = [image for image in posts if image.endswith(".txt") is False and os.path.isdir(image) is False]
-            images_name = sorted(images_name,key=lambda x: datetime.datetime.strptime(x.replace('$',':').split("_")[0],'%Y-%m-%d %H:%M:%S.%f'))
             
-            print('sending images names')
-            c.sendall(pickle.dumps(images_name))
-            print(c.recv(4096))
+            print("processing request")
+            images_name = get_images_name(person_id)
+            images = get_images(images_name,person_id)
+            images_time = get_image_time(images_name)
+            people_liked,likes = get_details(images_name,person_id)
+            propic,thumbnail = get_propic_and_thumbnail(person_id)
+            details = (images_name,likes,people_liked,propic,thumbnail,images_time,images)
+            print("done")
             
-            images = [PilImage.open(image) for image in images_name]
-            
-            with open('images_scout.pickle','wb') as f:
-                pickle.dump(images,f)
 
-            print('sending images')
-            with open('images_scout.pickle','rb') as f:
+            print("sending details")
+            with open(f'details_scout_user{add}.pickle','wb') as f:
+                pickle.dump(details,f)
+            with open(f'details_scout_user{add}.pickle','rb') as f:
                 data = f.read(4096)
                 while data:
                     c.sendall(data)
                     data = f.read(4096)
                 c.sendall(b'no more data')
-            print(c.recv(4096))
-            os.remove('images_scout.pickle')
+            os.remove(f'details_scout_user{add}.pickle')
+            print("sent")
 
-            likes_file = [image.replace(".jpg",".txt") for image in images_name]
-            people_liked_files = [file.replace(".txt","_people_liked.txt") for file in likes_file]
-            people_liked=[]
-            likes = []
-            
-            for file in likes_file:
-                with open(file,"r") as f:
-                    likes.append(f.read())
-            
-            for file in people_liked_files:
-                with open(file,"r") as f:
-                    people__ = [lines.strip() for lines in f.readlines()]
-                    people_liked.append(people__)
 
-            print('sending likes and people liked')
-            c.sendall(pickle.dumps([likes,people_liked]))
-            print(c.recv(4096))
-            
-            os.chdir('..')
-            
-            with conn_scout:
-                cursor_scout.execute("""SELECT propic,feed_thumbnail FROM accounts
-                            WHERE id = (:person_id)""",{
-                            "person_id":person_id
-                            })
-                person_propic,thumbnail = cursor_scout.fetchone()
-            pro_and_thu = [PilImage.open(person_propic),PilImage.open(thumbnail)]
-
-            print("sending propic and thumbanil")
-            with open('pro_and_thu_scout.pickle','wb') as f:
-                pickle.dump(pro_and_thu,f)
-            with open('pro_and_thu_scout.pickle','rb') as f:
-                data = f.read(4096)
-                while data:
-                    c.sendall(data)
-                    data = f.read(4096)
-                c.sendall(b'no more data')
-
-            print(c.recv(4096))
-
-            os.remove('pro_and_thu_scout.pickle') 
         except Exception as e:
             print('server_scout raised exception :',end = ' ')
             print(e)

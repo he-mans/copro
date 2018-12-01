@@ -4,6 +4,7 @@ from PIL import Image as PilImage
 import pickle
 import sqlite3
 import traceback
+import convert_to_bytes
 
 def login(entered_email,entered_password):
     
@@ -18,16 +19,16 @@ def login(entered_email,entered_password):
         if cursor_login.fetchone() is None: 
             return 0
         else:
-            cursor_login.execute("""SELECT first,last,email,id,password,
-                         propic,friend_req FROM accounts
-                         WHERE email = (:email)""",{"email":entered_email})
+            cursor_login.execute("""SELECT first,last,email,id,password
+                                    FROM accounts
+                                    WHERE email = (:email)""",{"email":entered_email}
+                                )
             details = cursor_login.fetchone()
             email,password = details[2],details[4]
             if entered_password != password:
                 return 1
             else:
-                lables = ["first","last","email","id","password",
-                         "propic","friend_req"]
+                lables = ["first","last","email","id","password"]
                 user_detail = {lable:value for lable,value in zip(lables,details) if lable!="password"}
                 return user_detail
 
@@ -35,60 +36,62 @@ def main():
     port = 2500
 
     print("creating scoket")
-    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    print("socket login created")
+    with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as s: 
+        print("socket login created")
+        
+        print("binding socket login")
+        s.bind(('',port))
+        print("socket login binded")
+        
+        s.listen(4)
+        print("server started listening")
 
-    print("binding socket login")
-    s.bind(('',port))
-    print("socket login binded")
+        while True:
+            try:
+                c,add = s.accept()
+                print("client accepted")
 
-    s.listen(4)
-    print("server started listening")
+                print("receiving login details")
+                login_details=pickle.loads(c.recv(4096))
+                print("received")
 
-    while True:
-        try:
-            c,add = s.accept()
-            print("client accepted")
+                return_status = login(login_details[0],login_details[1])
 
-            print("receiving login details")
-            login_details=pickle.loads(c.recv(4096))
-            print("received")
+                print("sending return status")
+                if return_status == 0 or return_status == 1:
+                    c.sendall(pickle.dumps(return_status))
 
-            email = login_details[0]
-            return_status = login(login_details[0],login_details[1])
+                else:
+                    user_id = return_status["id"]
 
-            print("sending return_status")
-            c.sendall(pickle.dumps(return_status))
-            print('sent')
+                    propic = PilImage.open(f"account_user{user_id}/profile_pic_user{user_id}/propic.jpg")
+                    thumbnail = PilImage.open(f"account_user{user_id}/thumbnail_user{user_id}/thumbnail.jpg")
 
-            if c.recv(4096).decode('utf-8') == "send":
-                user_id = return_status["id"]
-                print('sending propic and thumbnail sizes')
-                propic = PilImage.open(f"account_user{user_id}/profile_pic_user{user_id}/propic.jpg")
-                thumbnail = PilImage.open(f"account_user{user_id}/thumbnail_user{user_id}/thumbnail.jpg")
+                    propic_bytes = convert_to_bytes.convert_image(propic)
+                    thumbnail_bytes = convert_to_bytes.convert_image(thumbnail)
 
-                print('sending images to client')
-                with open("images_login.pickle",'wb') as f:
-                    images_list = [propic,thumbnail] 
-                    pickle.dump(images_list,f)
+                    return_status.update({"propic":propic_bytes})
+                    return_status.update({"thumbnail":thumbnail_bytes})
 
-                with open("images_login.pickle",'rb') as f:
-                    data = f.read(4096000)
-                    while data:
-                        c.sendall(data)
+                    with open("data_login.pickle",'wb') as f:
+                        pickle.dump(return_status,f)
+
+                    with open("data_login.pickle",'rb') as f:
                         data = f.read(4096000)
+                        while data:
+                            c.sendall(data)
+                            data = f.read(4096000)
+                    os.remove('data_login.pickle')
                 print("sent")
-                
-                os.remove('images_login.pickle')
-                
-        except Exception as e:
-            print('server_login raised exception :',end = ' ')
-            print(e)
-            print('traceback for above login error')
-            traceback.print_exc()
-            break
-        c.close()
-    s.close()
+                    
+            except Exception as e:
+                print('server_login raised exception :',end = ' ')
+                print(e)
+                print('traceback for above login error')
+                traceback.print_exc()
+                break
+            
+            c.close()
 
 if __name__ == '__main__':
     main()

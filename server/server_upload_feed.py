@@ -20,6 +20,12 @@ def get_friend_list(user_id):
 
 
 def upload(image,user_id,friend_list,upload_time):
+    image.save(f"account_user{user_id}/{upload_time}_image_account-{user_id}.jpg")
+    image.save(f"account_user{user_id}/feed_user{user_id}/{upload_time}_image_account-{user_id}.jpg")
+    with open(f"account_user{user_id}/{upload_time}_image_account-{user_id}.txt","w") as f:
+        f.write("0")
+    f=open(f"account_user{user_id}/{upload_time}_image_account-{user_id}_people_liked.txt","a").close()
+    
     for friend in friend_list:
         if(friend==""):
             continue
@@ -46,17 +52,14 @@ def main():
             c,add = s.accept()
             print("client accepted")
 
-            add_str = str(add)
-            add_str = add_str.replace("(","")
-            add_str = add_str.replace(")","")
-
             print('receiving user id')
             user_id = c.recv(4096).decode('utf-8')
             c.sendall("id received by server".encode())
             print("id received")
 
+            
             print('receiving image')
-            with open(f'image_upload_feed_user.pickle_user_{add_str}','wb') as f:
+            with open(f'image_upload_feed_user{add}.pickle','wb') as f:
                 data = c.recv(4096)
                 while data:
                     if data.endswith(b'no more data'):
@@ -66,28 +69,22 @@ def main():
                     f.write(data)
                     data = c.recv(4096)
             print("image_received")
-
             c.close()
         
-            with open(f'image_upload_feed_user.pickle_user_{add_str}','rb') as f:
+            
+            print("saving image")
+            with open(f'image_upload_feed_user{add}.pickle','rb') as f:
                 image = pickle.load(f)
-
             friend_list = get_friend_list(user_id)
-                
             friend_list = friend_list.split(" ")
             image.thumbnail((460,460))
             upload_time = str(datetime.datetime.now())
             upload_time=upload_time.replace(":","$")
-            image.save(f"account_user{user_id}/{upload_time}_image_account-{user_id}.jpg")
-            image.save(f"account_user{user_id}/feed_user{user_id}/{upload_time}_image_account-{user_id}.jpg")
-            f=open(f"account_user{user_id}/{upload_time}_image_account-{user_id}.txt","w")
-            f.write("0")
-            f.close()
-            f=open(f"account_user{user_id}/{upload_time}_image_account-{user_id}_people_liked.txt","a").close()
-            
             upload(image,user_id,friend_list,upload_time)
+            print("done saving image")
             
-            os.remove(f'image_upload_feed_user.pickle_user_{add_str}')
+            
+            os.remove(f'image_upload_feed_user{add}.pickle')
         except Exception as e:
             print(e)
             traceback.print_exc()

@@ -38,7 +38,7 @@ class create_account_thread(QtCore.QThread):
             self.signal.emit(-1)
 
 class login_thread(QtCore.QThread):
-    signal = QtCore.pyqtSignal(list)
+    signal = QtCore.pyqtSignal(dict)
     signal_error = QtCore.pyqtSignal(int)
     def __init__(self,email,password):
         QtCore.QThread.__init__(self)
@@ -976,7 +976,11 @@ class Ui_MainWindow(object):
         self.thread_login.signal_error.connect(self.login_message)
 
     def login_message(self,user_detail):
-        self.user_detail,propic = user_detail
+        self.user_detail = user_detail
+        try:
+            propic = self.user_detail['propic']
+        except:
+            pass
         self.btn_sign_up.setEnabled(True)
         self.btn_login.setEnabled(True)
         
@@ -1081,7 +1085,7 @@ class Ui_MainWindow(object):
         self.sent = details[2]
         self.page_elements = {}
 
-        if self.search_result == ():
+        if self.search_result == []:
             flag = self.generate_flag(flag_text = 'no result found')
             self.verticalLayout_11.addLayout(flag)
         

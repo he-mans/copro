@@ -4,6 +4,7 @@ import sqlite3
 from PIL import Image as PilImage
 import os
 import traceback
+import convert_to_bytes
 
 
 def fetch_req(user_id):
@@ -39,7 +40,6 @@ def reject(user_id,new_req_list,requester_id):
         sent = sent.split(" ")
         sent.remove(str(user_id))
         sent = (" ").join(sent)
-        print(sent)
         cursor_friend.execute("""UPDATE accounts 
                     SET sent = (:new_sent)
                     WHERE id = (:id)""",{
@@ -108,6 +108,7 @@ def main():
             c,add = s.accept()  
             print('connected to client')
 
+            print("receiving flag")
             flag = c.recv(4096).decode('utf-8')
             
             if flag == "fetch":
@@ -119,25 +120,27 @@ def main():
                 c.send('id received by server'.encode())
                 print('received')
 
+                
+                print('processing request')
                 req_list = fetch_req(user_id)
-
                 thumbnails = [PilImage.open(requests.split(' ')[3]) for requests in req_list if requests!='']
-                with open('images_friend.pickle','wb') as f:
-                    pickle.dump(thumbnails,f)
-
-                print('sending thumbnails')
-                with open('images_friend.pickle','rb') as f:
+                thumbnails = convert_to_bytes.convert_image(thumbnails)
+                print("processed")
+                
+                
+                print("sending requests")
+                requests_info = [req_list,thumbnails]
+                with open(f'requests_friend{add}.pickle','wb') as f:
+                    pickle.dump(requests_info,f)
+                with open(f'requests_friend{add}.pickle','rb') as f:
                     data = f.read(4096)
                     while data:
                         c.sendall(data)
                         data = f.read(4096)
                     c.sendall(b'no more data')
-                print(c.recv(4096).decode('utf-8'))
+                os.remove(f'requests_friend{add}.pickle')
+                print("sent")
 
-                os.remove('images_friend.pickle')
-                print("sending req details")
-                c.sendall(pickle.dumps(req_list))
-                print('sent')
 
             elif flag == 'reject':
                 c.send(b'flag received by server')
@@ -145,7 +148,6 @@ def main():
 
                 print('receiving details')
                 user_id,new_req_list,requester_id = pickle.loads(c.recv(4096))
-                print(requester_id)
                 reject(user_id,new_req_list,requester_id)
 
             elif flag == 'accept':
@@ -154,7 +156,6 @@ def main():
 
                 print('receiving details')
                 requester_id,new_req_list,user_id = pickle.loads(c.recv(4096))
-
                 accept(requester_id,new_req_list,user_id)
 
         except Exception as e:

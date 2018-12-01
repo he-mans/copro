@@ -74,11 +74,14 @@ def create_account(first,last,email,password):
 def main():
     
     port = 2000
+    
+    print("creating socket")
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     print("server socket created")
 
+    print("binding socket")
     s.bind(('',port))
-    print("server binded to port 1000")
+    print("server binded to port")
 
     s.listen(4)
     print("server started listening")

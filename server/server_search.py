@@ -4,7 +4,7 @@ import os
 import sqlite3
 from PIL import Image as PilImage
 import traceback
-
+import convert_to_bytes
 
 def search(detail,user_id):
     conn_search = sqlite3.connect("copro.db")
@@ -97,41 +97,38 @@ def main():
 
             flag = c.recv(4096)
             if flag =='search'.encode():
-                
-                c.sendall("flag received by client".encode())
                 print('flag recieved')
 
                 print('receiving details')
                 details= pickle.loads(c.recv(4096))
-                c.sendall('details received by server'.encode())
                 print('details received')
 
+                
+                print("processing request")
                 detail,user_id = details
-
                 search_result,friend_list,sent = search(detail,user_id)
-                thumbnails = [result[3] for result in search_result]
+                thumbnails = [PilImage.open(result[3]) for result in search_result]
+                thumbnails = convert_to_bytes.convert_image(thumbnails)
+                search_result = [list(result) for result in search_result]
+                for thumbnail,result in zip(thumbnails,search_result):
+                    result[3] = thumbnail
+                info = [search_result,friend_list,sent]
+                print("done")
 
-                thumbnails = [PilImage.open(thumbnail) for thumbnail in thumbnails]
-
-                with open('image_search.pickle','wb') as f:
-                    pickle.dump(thumbnails,f)
-
-                print("sending thumbnails")
-                with open('image_search.pickle','rb') as f:
+                
+                print("sending information")
+                with open(f'result_search{add}.pickle','wb') as f:
+                    pickle.dump(info,f)
+                with open(f'result_search{add}.pickle','rb') as f:
                     data = f.read(4096)
                     while data:
                         c.sendall(data)
                         data = f.read(4096)
                     c.sendall(b'no more data')
-                print(c.recv(4096).decode('utf-8'))
+                os.remove(f'result_search{add}.pickle')
+                print("sent")
 
-                os.remove('image_search.pickle')
-
-                print('sending search details')
-                search_details = [search_result,friend_list,sent]
-                c.sendall(pickle.dumps(search_details))
-                print('sent')
-
+            
             elif flag == 'send req'.encode():
                 c.sendall("flag received by client".encode())
                 print('flag recieved')

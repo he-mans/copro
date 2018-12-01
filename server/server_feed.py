@@ -1,29 +1,33 @@
-import socket
 import os
+import socket
 import pickle
-from PIL import Image as PilImage 
 import sqlite3
 import datetime
 import traceback
-from io import BytesIO
+import convert_to_bytes
+from PIL import Image as PilImage 
+
 
 def get_image_names(user_id):
     os.chdir(f"account_user{user_id}/feed_user{user_id}")
     ls = os.listdir()
     ls = [image for image in ls if image.endswith(".txt") is False]
     ls = sorted(ls,key = lambda x: datetime.datetime.strptime(x.replace('$',':').split('_')[0],'%Y-%m-%d %H:%M:%S.%f'))    
-    os.chdir('..')
-    os.chdir('..')
+    ls = [f'account_user{user_id}/feed_user{user_id}/{image}' for image in ls]
+    os.chdir('../..')
     return ls
+
+def get_image_time(images_name):
+    images_time = [image.split('/')[-1] for image in images_name]
+    images_time = [datetime.datetime.strptime(image.replace('$',':').split('_')[0],'%Y-%m-%d %H:%M:%S.%f') for image in images_time]
+    return images_time
 
 def get_user_details(user_id,ls):
     
+    ls = [image.split('/')[-1] for image in ls]
     conn_feed = sqlite3.connect("copro.db")
     cursor_feed = conn_feed.cursor()
-    os.chdir(f"account_user{user_id}/feed_user{user_id}")
-
     ids = [image.split("-")[-1].split(".jpg")[0] for image in ls]
-    #emails = []
     full_name = []
     image_txt = []
     image_people_liked = []
@@ -33,13 +37,13 @@ def get_user_details(user_id,ls):
     for poster_id in ids:
         with conn_feed:
             cursor_feed.execute("""SELECT first,last FROM accounts
-                        WHERE id = (:id)""",{
-                        "id":poster_id,
-                        })
+                                    WHERE id = (:id)""",{
+                                    "id":poster_id,
+                                })
         result = cursor_feed.fetchone()
-        
         full_name.append(result[0]+" "+result[1])
-    os.chdir("../..")
+    
+    
     for image in ls:
         image_txt.append(image.replace(".jpg",".txt")) 
         image_people_liked.append(image.replace(".jpg","_people_liked.txt"))
@@ -93,55 +97,33 @@ def main():
             user_id = c.recv(4096).decode('utf-8')
             print("id received")
 
+            print("processing request")
             image_names = get_image_names(user_id)
+            images_time = get_image_time(image_names)
+            images = [convert_to_bytes.convert_image(PilImage.open(image)) for image in image_names]
+            details = list(get_user_details(user_id,image_names))
+            thumbnails = get_feed_thumbnails(details[2])
+            thumbnails = [convert_to_bytes.convert_image(PilImage.open(thumbnail)) for thumbnail in thumbnails]
+            details.insert(0,thumbnails)
+            details.insert(0,image_names)
+            details.append(images_time)
+            details.append(images)
+            print("done processing")
 
-            print("sending image names")
-            c.sendall(pickle.dumps(image_names))
-            
-            if c.recv(4096).decode("utf-8") == "received":
-
-                print("received by client")
-                os.chdir(f'account_user{user_id}/feed_user{user_id}')
-
-                images = [PilImage.open(image) for image in image_names]
-                
-                with open(f'images_feed_user{add}.pickle','wb') as f:
-                    pickle.dump(images,f)
-
-                print("sending images")
-                with open(f"images_feed_user{add}.pickle",'rb') as f:
+        
+            print("sending details")
+            with open(f'feed_user{add}.pickle','wb') as f:
+                pickle.dump(details,f)
+            with open(f"feed_user{add}.pickle",'rb') as f:
+                data = f.read(4096)
+                while data:
+                    c.send(data)
                     data = f.read(4096)
-                    while data:
-                        c.send(data)
-                        data = f.read(4096)
-                    c.send("no more data".encode())
-                print(c.recv(4096).decode("utf-8"))
+                c.send("no more data".encode())
+            os.remove(f'feed_user{add}.pickle')
+            print("sent")
 
-                os.remove(f'images_feed_user{add}.pickle')
-                os.chdir('..')
-                os.chdir('..')
-                
-                details = get_user_details(user_id,image_names)
-                print("sending details")
-                c.sendall(pickle.dumps(details))
-                print("sent")
-                print(c.recv(4096).decode("utf-8"))
-            
-                thumbnails = get_feed_thumbnails(details[2])
-                print("sending thumbnails")
-                thumbnail_image = [PilImage.open(thumbnail) for thumbnail in thumbnails]
-
-                with open(f'thumbnail_image_feed_user{add}.pickle','wb') as f:
-                    pickle.dump(thumbnail_image,f)
-
-                with open(f'thumbnail_image_feed_user{add}.pickle','rb') as f:
-                    data = f.read(4096)
-                    while data:
-                        c.sendall(data)
-                        data = f.read(4096)
-                print("all thumbnails sent")
-                os.remove(f"thumbnail_image_feed_user{add}.pickle")
-
+        
         except Exception as e:
             print('server_feed raised exception :',end = ' ')
             print(e)
