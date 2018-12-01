@@ -89,12 +89,11 @@ def account_settings(flag,new_detail,user_detail):
 
     print("sending details")
     details = [flag,new_detail,user_detail]
-    details = pickle.dumps(details)
-    s.sendall(details)
+    s.sendall(pickle.dumps(details))
     print("sent")
 
     print("receiving return_data")
-    return_data = pickle.loads(s.recv(4096))
+    return_data = pickle.loads(s.recv(409600))
     print("received")
 
     s.close()

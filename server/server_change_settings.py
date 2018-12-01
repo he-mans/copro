@@ -83,12 +83,13 @@ def main():
             
             print("receiving flag")
             flag = c.recv(4096).decode('utf-8')
-            c.sendall('received by server'.encode())
             print("received")
             
             if flag == 'settings':
+                c.sendall('received by server'.encode())
+                
                 print("receiving details")
-                details = pickle.loads(c.recv(4096))
+                details = pickle.loads(c.recv(409600))
                 print("received")
                 
                 print("making changs")
