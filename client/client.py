@@ -8,15 +8,6 @@ from PIL import Image as PilImage
 
 ip = '127.0.0.1'
 
-def get_byte_array(images):
-    images_byte_array_dict = {}
-    images_byte_array = []
-    for i,image in enumerate(images):
-        images_byte_array_dict.update({f'array{i}':BytesIO()})
-        image.save(images_byte_array_dict[f'array{i}'],"JPEG")
-        images_byte_array.append(images_byte_array_dict[f'array{i}'].getvalue() )
-    return images_byte_array
-
 def create(first,last,email,password):
     port = 2000
     global ip
