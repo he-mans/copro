@@ -36,4 +36,6 @@ note:
 
  **to know how it works or which modules are used and why read respective .md files**
  
+ **click [here](https://github.com/planetred-cc/copro/blob/master/sample_gui_images.md#login-and-signup-pages) to see how gui look**
+ 
  **if programm gives ERROR `TabError: inconsistent use of tabs and spaces in indentation` change indentation to spaces in for that file**
