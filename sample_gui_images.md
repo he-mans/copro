@@ -7,7 +7,7 @@
 
 # search page
 ![search page](https://github.com/planetred-cc/copro/blob/master/images/Screenshot%20from%202018-12-30%2010-26-34.png)
-![search page](https://github.com/planetred-cc/copro/blob/master/images/Screenshot%20from%202018-12-30%2010-27-53.png))
+![search page](https://github.com/planetred-cc/copro/blob/master/images/Screenshot%20from%202018-12-30%2010-27-53.png)
 
 # friend request page
 ![request page](https://github.com/planetred-cc/copro/blob/master/images/Screenshot%20from%202018-12-30%2010-27-31.png)
