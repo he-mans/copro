@@ -149,7 +149,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QtGui.QHBoxLayout()
         spacerItem_login2 = QtGui.QSpacerItem(40,20,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         self.horizontalLayout.addItem(spacerItem_login2)
-
         self.verticalLayout = QtGui.QVBoxLayout()
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         spacerItem_0 = QtGui.QSpacerItem(300,40,QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
@@ -1084,7 +1083,7 @@ class Ui_MainWindow(object):
         self.friend_list = details[1]
         self.sent = details[2]
         self.page_elements = {}
-
+        
         if self.search_result == []:
             flag = self.generate_flag(flag_text = 'no result found')
             self.verticalLayout_11.addLayout(flag)
